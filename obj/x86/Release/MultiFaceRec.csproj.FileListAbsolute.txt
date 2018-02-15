@@ -1,0 +1,4 @@
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Release\MultiFaceRec.FrmPrincipal.resources
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Release\MultiFaceRec.Properties.Resources.resources
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Release\MultiFaceRec.csproj.GenerateResource.Cache
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Release\MultiFaceRec.csproj.CoreCompileInputs.cache
