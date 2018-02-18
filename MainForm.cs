@@ -92,6 +92,18 @@ namespace MultiFaceRec
             //_eye = new HaarCascade("haarcascade_eye.xml");
             try
             {
+                LoadSettings();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(
+                    "Failed to load settings collection from faces database on local mongodb server.",
+                    "Trained faces load", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
+            }
+            try
+            {
+
                 LoadTrainedFacesForStartup();
             }
             catch (Exception e)
@@ -108,21 +120,46 @@ namespace MultiFaceRec
             UpdateCurrentBrowsedImage();
         }
 
-
+        private IMongoCollection<KeyValuePair<string, string>> settingsCollection;
         private void InitialiseDb()
         {
             dbClient = new MongoClient(); //defaults to using admin database on localhost.
-
+            var dbSettings = new MongoCollectionSettings()
+            {
+                AssignIdOnInsert = true,
+                ReadPreference = ReadPreference.Primary,
+                ReadConcern = ReadConcern.Default,
+                ReadEncoding = new UTF8Encoding(false, false)
+            };
             db = dbClient.GetDatabase("faces");
+            settingsCollection = db.GetCollection<KeyValuePair<string, string>>("settings", dbSettings);
+            collection = db.GetCollection<FacialCroppedMatch>("trustedGrey", dbSettings
+               );
+        }
 
-            collection = db.GetCollection<FacialCroppedMatch>("trustedGrey",
-                new MongoCollectionSettings()
+        private void LoadSettings()
+        {
+            if (settingsCollection == null) { InitialiseDb(); }
+
+            if (settingsCollection.Count(x => true) == 0)
+            {
+                if (File.Exists(Application.ExecutablePath + "\\Settings.ini"))
                 {
-                    AssignIdOnInsert = true,
-                    ReadPreference = ReadPreference.Primary,
-                    ReadConcern = ReadConcern.Default,
-                    ReadEncoding = new UTF8Encoding(false, false)
-                });
+                    LoadSettingsFromFile(Application.ExecutablePath + "\\Settings.ini");
+                }
+                else
+                {
+                    throw new MongoException("No settings records/documents found in collection.");
+                }
+            }
+            privacyList.Clear();
+            settingsCollection.Find(x => x.Key == "privacyList").ToList().ForEach(x => privacyList.Add(x.Value));
+
+        }
+
+        private void LoadSettingsFromFile(string filePath)
+        {
+            throw new NotImplementedException();
         }
 
         private void LoadTrainedFacesForStartup()
@@ -725,6 +762,26 @@ namespace MultiFaceRec
             return adressEditBox.Current.Name;
         }
 
+        private frmSettings _frm;
+
+        private frmSettings myFrmSettings
+        {
+            get
+            {
+                if(_frm==null)
+                    _frm = new frmSettings();
+                    
+                return _frm;
+            }
+            set { _frm = value; }
+        }
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            myFrmSettings._senderFrm = this;
+            myFrmSettings.Show();
+        }
+
         [DllImport("user32")]
         public static extern IntPtr GetDesktopWindow();
 
@@ -742,32 +799,32 @@ namespace MultiFaceRec
             //Process.Start("Donate.html");
         }
 
-        private static List<string> privacyList=null;
+        public  List<string> privacyList = new List<string>()
+        {
+            "outlook",
+            "microsoftedgecp" ,
+            "microsoftedge",
+            "edge",
+            "firefox",
+            "chrome",
+            "winword",
+            "msteams",
+            "teams",
+            "skype",
+            "hangouts",
+            "thunderbird","eudora",
+            "mail",
+            "hxoutlook"
+        };
 
-        private static string GetRunningProcesses()
+        private  string GetRunningProcesses()
         {
             const string PROCS = "Running Processes...";
             var sb = new StringBuilder(PROCS);
 
-            //privacyList = new List<string>()
-            //{
-            //    "outlook",
-            //    "microsoftedgecp" ,
-            //    "microsoftedge",  
-            //    "edge",
-            //    "firefox",
-            //    "chrome",
-            //    "winword",
-            //    "msteams",
-            //    "teams",
-            //    "skype",
-            //    "hangouts",
-            //    "thunderbird","eudora",
-            //    "mail",
-            //    "msmail"
-            //};
 
-           // if(Process.GetProcesses().Select(x => x).Any(process => privacyList.Contains(process.ProcessName) )) MinimizeAll.Minimizer.MinimizeAll();
+
+            // if(Process.GetProcesses().Select(x => x).Any(process => privacyList.Contains(process.ProcessName) )) MinimizeAll.Minimizer.MinimizeAll();
             Process.GetProcesses().Select(x => x).ToList().ForEach(process =>
             {
                 var x = process.ProcessName;

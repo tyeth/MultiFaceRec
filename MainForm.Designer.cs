@@ -44,6 +44,7 @@ namespace MultiFaceRec
             this.setDetectionModeToTrainingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showTrainingInterfaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.currentDectectionModeStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.txtCurrentPicture = new System.Windows.Forms.Label();
             this.btnNext = new System.Windows.Forms.Button();
             this.btnPrev = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
@@ -59,7 +60,7 @@ namespace MultiFaceRec
             this.btnDonate = new System.Windows.Forms.Button();
             this.imageBoxFrameGrabber = new Emgu.CV.UI.ImageBox();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.txtCurrentPicture = new System.Windows.Forms.Label();
+            this.btnSettings = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -172,6 +173,14 @@ namespace MultiFaceRec
             this.currentDectectionModeStatusToolStripMenuItem.Tag = "-=<{ Currently Dectection Mode == STATUS  }>=-";
             this.currentDectectionModeStatusToolStripMenuItem.Text = "-=<{ Currently Dectection Mode == Off  }>=-";
             // 
+            // txtCurrentPicture
+            // 
+            this.txtCurrentPicture.BackColor = System.Drawing.Color.Transparent;
+            this.txtCurrentPicture.Location = new System.Drawing.Point(67, 225);
+            this.txtCurrentPicture.Name = "txtCurrentPicture";
+            this.txtCurrentPicture.Size = new System.Drawing.Size(111, 13);
+            this.txtCurrentPicture.TabIndex = 11;
+            // 
             // btnNext
             // 
             this.btnNext.Location = new System.Drawing.Point(67, 200);
@@ -221,6 +230,7 @@ namespace MultiFaceRec
             // groupBox2
             // 
             this.groupBox2.ContextMenuStrip = this.contextMenuStrip1;
+            this.groupBox2.Controls.Add(this.btnSettings);
             this.groupBox2.Controls.Add(this.label5);
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.label3);
@@ -329,13 +339,18 @@ namespace MultiFaceRec
             this.notifyIcon.BalloonTipClosed += new System.EventHandler(this.notifyIcon_BalloonTipClosed);
             this.notifyIcon.DoubleClick += new System.EventHandler(this.notifyIcon_DoubleClick);
             // 
-            // txtCurrentPicture
+            // btnSettings
             // 
-            this.txtCurrentPicture.BackColor = System.Drawing.Color.Transparent;
-            this.txtCurrentPicture.Location = new System.Drawing.Point(67, 225);
-            this.txtCurrentPicture.Name = "txtCurrentPicture";
-            this.txtCurrentPicture.Size = new System.Drawing.Size(111, 13);
-            this.txtCurrentPicture.TabIndex = 11;
+            this.btnSettings.AccessibleDescription = "Settings Button";
+            this.btnSettings.AccessibleName = "Settings Button";
+            this.btnSettings.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("btnSettings.BackgroundImage")));
+            this.btnSettings.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.btnSettings.Location = new System.Drawing.Point(13, 113);
+            this.btnSettings.Name = "btnSettings";
+            this.btnSettings.Size = new System.Drawing.Size(43, 41);
+            this.btnSettings.TabIndex = 19;
+            this.btnSettings.UseVisualStyleBackColor = true;
+            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
             // 
             // FrmPrincipal
             // 
@@ -392,6 +407,7 @@ namespace MultiFaceRec
         private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label txtCurrentPicture;
+        private System.Windows.Forms.Button btnSettings;
     }
 }
 
