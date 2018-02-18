@@ -1790,7 +1790,4 @@
         ////////////////////////
 </value>
   </data>
-  <data name="FrmPrincipal_LoadTrainedFacesForStartup_Collection_contains__0__records_" xml:space="preserve">
-    <value>Collection contains {0} records.</value>
-  </data>
 </root>

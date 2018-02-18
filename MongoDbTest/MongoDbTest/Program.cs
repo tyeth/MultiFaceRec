@@ -27,42 +27,40 @@ namespace MongoDbTest
                 @"C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\TrainedFaces";
 
             Console.WriteLine($"Searching {PATH}!");
-            var dir =Directory.EnumerateFiles(PATH);
+
             List<FacialCroppedMatch> list = new List<FacialCroppedMatch>();
-            foreach (var file in dir)
-            {
+            
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.Write("loading ");
                 Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                Console.WriteLine(file);
-                if (file.EndsWith("TrainedLabels.txt"))
-                {
-                    LoadTrainedLabels(file);
-                }
-                else if (file.EndsWith(".bmp"))
-                {
-                   var imgMatch = new FacialCroppedMatch()
-                    {
-                        Name = file
-                    };
-                    //var imgGrey = new Image<Gray, byte>(file);
-                    
-                    var fileBytes = File.ReadAllBytes(file);
-                    MemoryStream ms = new MemoryStream(fileBytes.Length);
-                    ms.Write(fileBytes,0,fileBytes.Length);
-                    //ms.FlushAsync();
+                Console.WriteLine("TrainedLabels.txt");
 
-                    //imgGrey.Bitmap.Save(ms, ImageFormat.Bmp);
-                    //ms.Seek(0, SeekOrigin.Begin);
-                    imgMatch.ImageBytes = ms.ToArray();
+            LoadTrainedLabels(PATH+ "\\TrainedLabels.txt");
 
-                    list.Add(imgMatch);
-                }
-            }
+           
+                
+            
 
             for (int i = 0; i < namesList.Count; i++)
             {
-                list[i].Person =  namesList[i];
+                string file = PATH + "\\face" + (i + 1) + ".bmp";
+                var imgMatch = new FacialCroppedMatch()
+                {
+                    Name = file,
+                    Person=namesList[i]
+                };
+                //var imgGrey = new Image<Gray, byte>(file);
+
+                var fileBytes = File.ReadAllBytes(file);
+                MemoryStream ms = new MemoryStream(fileBytes.Length);
+                ms.Write(fileBytes, 0, fileBytes.Length);
+                //ms.FlushAsync();
+
+                //imgGrey.Bitmap.Save(ms, ImageFormat.Bmp);
+                //ms.Seek(0, SeekOrigin.Begin);
+                imgMatch.ImageBytes = ms.ToArray();
+
+                list.Add(imgMatch);
             }
 
 
@@ -78,7 +76,7 @@ namespace MongoDbTest
 
                 var filename = facialCroppedMatch.Name.Split('\\').Last();
                 if (collection.Count(x =>
-                        x.Name == facialCroppedMatch.Name && x.ImageBytes == facialCroppedMatch.ImageBytes) > 0)
+                        x.Name == facialCroppedMatch.Name && x.Person==facialCroppedMatch.Person && x.ImageBytes == facialCroppedMatch.ImageBytes) > 0)
                 {
                     list.Remove(facialCroppedMatch);
                     Console.ForegroundColor = ConsoleColor.Red;

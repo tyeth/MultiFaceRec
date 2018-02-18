@@ -118,7 +118,8 @@ namespace MultiFaceRec
                 {
                     AssignIdOnInsert = true,
                     ReadPreference = ReadPreference.Primary,
-                    ReadConcern = ReadConcern.Default
+                    ReadConcern = ReadConcern.Default,
+                    ReadEncoding = new UTF8Encoding(false,false)
                 });
         }
 
@@ -461,6 +462,7 @@ namespace MultiFaceRec
         {
             try
             {
+                txtCurrentPicture.Text = $"{(FacesCounter+1)}/{trainingImages.Count} {labels[FacesCounter]}";
                 pictureBox1.Image = CurrentImage.Bitmap;
                 pictureBox1.SizeMode=PictureBoxSizeMode.StretchImage;
                 pictureBox1.Refresh();

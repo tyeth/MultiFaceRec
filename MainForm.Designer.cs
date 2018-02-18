@@ -44,6 +44,9 @@ namespace MultiFaceRec
             this.setDetectionModeToTrainingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showTrainingInterfaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.currentDectectionModeStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btnNext = new System.Windows.Forms.Button();
+            this.btnPrev = new System.Windows.Forms.Button();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.imageBox1 = new Emgu.CV.UI.ImageBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -56,21 +59,19 @@ namespace MultiFaceRec
             this.btnDonate = new System.Windows.Forms.Button();
             this.imageBoxFrameGrabber = new Emgu.CV.UI.ImageBox();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.btnPrev = new System.Windows.Forms.Button();
-            this.btnNext = new System.Windows.Forms.Button();
+            this.txtCurrentPicture = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBoxFrameGrabber)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // BtnSaveFoundFace
             // 
             this.BtnSaveFoundFace.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.BtnSaveFoundFace.Location = new System.Drawing.Point(87, 201);
+            this.BtnSaveFoundFace.Location = new System.Drawing.Point(87, 181);
             this.BtnSaveFoundFace.Name = "BtnSaveFoundFace";
             this.BtnSaveFoundFace.Size = new System.Drawing.Size(87, 31);
             this.BtnSaveFoundFace.TabIndex = 3;
@@ -80,7 +81,7 @@ namespace MultiFaceRec
             // 
             // TxtUsername
             // 
-            this.TxtUsername.Location = new System.Drawing.Point(67, 170);
+            this.TxtUsername.Location = new System.Drawing.Point(67, 155);
             this.TxtUsername.Name = "TxtUsername";
             this.TxtUsername.Size = new System.Drawing.Size(107, 20);
             this.TxtUsername.TabIndex = 7;
@@ -89,6 +90,7 @@ namespace MultiFaceRec
             // groupBox1
             // 
             this.groupBox1.ContextMenuStrip = this.contextMenuStrip1;
+            this.groupBox1.Controls.Add(this.txtCurrentPicture);
             this.groupBox1.Controls.Add(this.btnNext);
             this.groupBox1.Controls.Add(this.btnPrev);
             this.groupBox1.Controls.Add(this.pictureBox1);
@@ -170,10 +172,38 @@ namespace MultiFaceRec
             this.currentDectectionModeStatusToolStripMenuItem.Tag = "-=<{ Currently Dectection Mode == STATUS  }>=-";
             this.currentDectectionModeStatusToolStripMenuItem.Text = "-=<{ Currently Dectection Mode == Off  }>=-";
             // 
+            // btnNext
+            // 
+            this.btnNext.Location = new System.Drawing.Point(67, 200);
+            this.btnNext.Name = "btnNext";
+            this.btnNext.Size = new System.Drawing.Size(14, 22);
+            this.btnNext.TabIndex = 10;
+            this.btnNext.Text = ">";
+            this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
+            // 
+            // btnPrev
+            // 
+            this.btnPrev.Location = new System.Drawing.Point(67, 178);
+            this.btnPrev.Name = "btnPrev";
+            this.btnPrev.Size = new System.Drawing.Size(14, 22);
+            this.btnPrev.TabIndex = 10;
+            this.btnPrev.Text = "<";
+            this.btnPrev.UseVisualStyleBackColor = true;
+            this.btnPrev.Click += new System.EventHandler(this.btnPrev_Click);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(0, 177);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(61, 65);
+            this.pictureBox1.TabIndex = 9;
+            this.pictureBox1.TabStop = false;
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(11, 173);
+            this.label1.Location = new System.Drawing.Point(20, 158);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 13);
             this.label1.TabIndex = 8;
@@ -299,33 +329,13 @@ namespace MultiFaceRec
             this.notifyIcon.BalloonTipClosed += new System.EventHandler(this.notifyIcon_BalloonTipClosed);
             this.notifyIcon.DoubleClick += new System.EventHandler(this.notifyIcon_DoubleClick);
             // 
-            // pictureBox1
+            // txtCurrentPicture
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(7, 190);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(54, 52);
-            this.pictureBox1.TabIndex = 9;
-            this.pictureBox1.TabStop = false;
-            // 
-            // btnPrev
-            // 
-            this.btnPrev.Location = new System.Drawing.Point(67, 197);
-            this.btnPrev.Name = "btnPrev";
-            this.btnPrev.Size = new System.Drawing.Size(14, 20);
-            this.btnPrev.TabIndex = 10;
-            this.btnPrev.Text = "<";
-            this.btnPrev.UseVisualStyleBackColor = true;
-            this.btnPrev.Click += new System.EventHandler(this.btnPrev_Click);
-            // 
-            // btnNext
-            // 
-            this.btnNext.Location = new System.Drawing.Point(67, 216);
-            this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(14, 22);
-            this.btnNext.TabIndex = 10;
-            this.btnNext.Text = ">";
-            this.btnNext.UseVisualStyleBackColor = true;
-            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
+            this.txtCurrentPicture.BackColor = System.Drawing.Color.Transparent;
+            this.txtCurrentPicture.Location = new System.Drawing.Point(67, 225);
+            this.txtCurrentPicture.Name = "txtCurrentPicture";
+            this.txtCurrentPicture.Size = new System.Drawing.Size(111, 13);
+            this.txtCurrentPicture.TabIndex = 11;
             // 
             // FrmPrincipal
             // 
@@ -343,11 +353,11 @@ namespace MultiFaceRec
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBoxFrameGrabber)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -381,6 +391,7 @@ namespace MultiFaceRec
         private System.Windows.Forms.Button btnNext;
         private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label txtCurrentPicture;
     }
 }
 
