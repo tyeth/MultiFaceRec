@@ -27,6 +27,7 @@ using System.Text;
 using System.Windows.Automation;
 using MinimizeAll;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace MultiFaceRec
@@ -124,16 +125,25 @@ namespace MultiFaceRec
         private void InitialiseDb()
         {
             dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
-            var dbSettings = new MongoCollectionSettings()
+            var dbSettingsNoId = new MongoCollectionSettings()
+            {
+                AssignIdOnInsert = false,
+                WriteEncoding = new UTF8Encoding(false,false),
+                ReadPreference = ReadPreference.Primary,
+                ReadConcern = ReadConcern.Default,
+                ReadEncoding = new UTF8Encoding(false, false)
+            };
+            var dbSettingsWithId = new MongoCollectionSettings()
             {
                 AssignIdOnInsert = true,
+                WriteEncoding = new UTF8Encoding(false,false),
                 ReadPreference = ReadPreference.Primary,
                 ReadConcern = ReadConcern.Default,
                 ReadEncoding = new UTF8Encoding(false, false)
             };
             db = dbClient.GetDatabase(MongoDb);
-            settingsCollection = db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettings);
-            collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettings
+            settingsCollection = db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettingsNoId);
+            collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettingsWithId
                );
         }
 
@@ -153,8 +163,29 @@ namespace MultiFaceRec
                 }
             }
             privacyList.Clear();
-            settingsCollection.Find(x => x.Key == "PrivacyList").ToList().ForEach(x => privacyList.Add(x.Value));
+           // var list = settingsCollection.FindSync(x => x.Key == "PrivacyList").ToList();
 
+
+            var filterBuilder = Builders<KeyValuePair<string,string>>.Filter;
+            var filter = filterBuilder.Eq<string>("k", "PrivacyList");// & filterBuilder.Exists("isTransformed", false);
+
+            var projection = Builders<KeyValuePair<string, string>>.Projection
+                    .Exclude("_id")
+                .Include("k")
+                .Include("v")
+                //.Include("client")
+                //.Include("url")
+                //.Include("fileName")
+                //.Include("context")
+                ;
+
+            var list= settingsCollection.Find (  filter).Project(  projection  ).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
+            
+                list.ForEach(x =>
+                {
+                    var xDoc = BsonSerializer.Deserialize<KeyValuePair<string,string>>(x);
+                    privacyList.Add(xDoc.Value);
+                });
         }
 
         private void LoadSettingsFromFile(string filePath)
@@ -768,7 +799,7 @@ namespace MultiFaceRec
         {
             get
             {
-                if(_frm==null)
+                if(_frm==null || _frm.IsDisposed)
                     _frm = new frmSettings();
                     
                 return _frm;
@@ -785,8 +816,9 @@ namespace MultiFaceRec
 
         private void btnSettings_Click(object sender, EventArgs e)
         {
-            myFrmSettings._senderFrm = this;
-            myFrmSettings.Show();
+            var f = myFrmSettings;
+            f._senderFrm = this;
+            f.Show();
         }
 
         [DllImport("user32")]

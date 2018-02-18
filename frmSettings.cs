@@ -110,7 +110,7 @@ namespace MultiFaceRec
             }
         }
 
-        private void button1_Click_1(object sender, EventArgs e)
+        private void btnAdd_Click(object sender, EventArgs e)
         {
             if (listBox1.Items.Contains(comboBox1.Text) == false)
             {
@@ -125,7 +125,8 @@ namespace MultiFaceRec
         {
             if (e.KeyChar == '\r' || e.KeyChar == '\n')
             {
-                button1_Click_1(this, new EventArgs());
+                btnAdd_Click(this, new EventArgs());
+                comboBox1.Focus();
             }
         }
 
@@ -144,7 +145,7 @@ namespace MultiFaceRec
         {
             if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
             {
-                button1_Click_1(this, new EventArgs());
+                btnAdd_Click(this, new EventArgs());
             }
 
         }
@@ -238,6 +239,26 @@ namespace MultiFaceRec
         {
             if (txtVillains.Text != _senderFrm.MongoVillainsCollection) unsavedChanges = true;
 
+        }
+
+        private void comboBox1_Enter(object sender, EventArgs e)
+        {
+            if (btnSave.Focused)
+            {
+                btnAdd.Focus();
+            }
+        }
+
+        private void comboBox1_Leave(object sender, EventArgs e)
+        {
+            //var control = sender as Control;
+            //if (control != comboBox1)
+            //{
+
+
+            //    if (!btnSave.Focused) btnSave.Focus();
+            //    control.Focus();
+            //}
         }
     }
 }

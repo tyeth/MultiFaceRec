@@ -33,7 +33,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.listBox1 = new System.Windows.Forms.ListBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnAdd = new System.Windows.Forms.Button();
             this.btnResetPrivacyList = new System.Windows.Forms.Button();
             this.btnDeletePrivacyItem = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
@@ -99,8 +99,10 @@
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(148, 21);
             this.comboBox1.TabIndex = 2;
+            this.comboBox1.Enter += new System.EventHandler(this.comboBox1_Enter);
             this.comboBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBox1_KeyPress);
             this.comboBox1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.comboBox1_KeyUp);
+            this.comboBox1.Leave += new System.EventHandler(this.comboBox1_Leave);
             // 
             // listBox1
             // 
@@ -112,15 +114,15 @@
             this.listBox1.SelectedIndexChanged += new System.EventHandler(this.listBox1_SelectedIndexChanged);
             this.listBox1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBox1_KeyUp);
             // 
-            // button1
+            // btnAdd
             // 
-            this.button1.Location = new System.Drawing.Point(146, 30);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(49, 22);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Add";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            this.btnAdd.Location = new System.Drawing.Point(146, 30);
+            this.btnAdd.Name = "btnAdd";
+            this.btnAdd.Size = new System.Drawing.Size(49, 22);
+            this.btnAdd.TabIndex = 4;
+            this.btnAdd.Text = "Add";
+            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
             // btnResetPrivacyList
             // 
@@ -344,7 +346,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnDeletePrivacyItem);
             this.Controls.Add(this.btnResetPrivacyList);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.comboBox1);
             this.Controls.Add(this.btnCancel);
@@ -371,7 +373,7 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.ComboBox comboBox1;
         private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnResetPrivacyList;
         private System.Windows.Forms.Button btnDeletePrivacyItem;
         private System.Windows.Forms.Label label1;
