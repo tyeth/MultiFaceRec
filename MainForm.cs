@@ -211,13 +211,14 @@ namespace MultiFaceRec
 
         public void LoadSettings()
         {
+            Console.WriteLine($"Loading settings from {MongoSettingsCollection} collection in {MongoDb} database via {MongoUrl}");
             if (settingsCollection == null) InitialiseDb();
 
             if (settingsCollection.Count(x => true) == 0)
                 if (File.Exists(Application.ExecutablePath + "\\Settings.ini"))
                     LoadSettingsFromFile(Application.ExecutablePath + "\\Settings.ini");
                 else
-                    throw new MongoException("No settings records/documents found in collection.");
+                    throw new MongoException("No settings records/documents found in collection, and no backup Settings.ini file.");
 
             privacyList.Clear();
 
@@ -238,14 +239,14 @@ namespace MultiFaceRec
                 "Villains"
             });
             bool changed = false;
-            UpdateAndFlagBoolIfChanged(ref  changed, ref MongoUrl,
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoUrl,
                 cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value);
-           UpdateAndFlagBoolIfChanged(ref changed, ref MongoUrl , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value );
-           UpdateAndFlagBoolIfChanged(ref changed, ref MongoDb , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value  );
-           UpdateAndFlagBoolIfChanged(ref changed, ref MongoSettingsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value );
-           UpdateAndFlagBoolIfChanged(ref changed, ref MongoTrustedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value );
-           UpdateAndFlagBoolIfChanged(ref changed, ref MongoScannedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value );
-            UpdateAndFlagBoolIfChanged(ref changed, ref MongoVillainsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value );
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoUrl, cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value);
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoDb, cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value);
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoSettingsCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value);
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoTrustedCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value);
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoScannedCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value);
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoVillainsCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value);
             if (changed)
             {
                 InitialiseDb();
@@ -275,6 +276,12 @@ namespace MultiFaceRec
             return b;
         }
 
+        /// <summary>
+        /// Returns filtered and cleaned Key Value Pairs from settingsCollection
+        /// This function is needed to avoid the "missing '_id' element" error when deserialising into KeyValuePairs.
+        /// </summary>
+        /// <param name="keysEnumerable">Keys to filter the settings collection for.</param>
+        /// <returns>Returns cleaned KeyValuePairs from the dreaded bsondocuments</returns>
         private IList<KeyValuePair<string, string>> GetSettingsFromDbCollection(IEnumerable<string> keysEnumerable)
         {
             var ret = new List<KeyValuePair<string, string>>();
@@ -295,9 +302,12 @@ namespace MultiFaceRec
 
                 ;
 
-            var list = settingsCollection.Find(filter).Project(projection).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
+            if (settingsCollection.Count(filter) != 0)
+            {
+                var list = settingsCollection.Find(filter).Project(projection).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
 
-            ret = list.Select(x => BsonSerializer.Deserialize<KeyValuePair<string, string>>(x)).ToList();
+                ret = list.Select(x => BsonSerializer.Deserialize<KeyValuePair<string, string>>(x)).ToList();
+            }
             return ret;
         }
 
@@ -310,11 +320,9 @@ namespace MultiFaceRec
         public void LoadTrainedFacesForStartup()
         {
             if (collection == null) InitialiseDb();
-            //if (collection.Count(x => true) == 0) throw new DataException("The Database has no records or the connection is broken.");
             TrainingImages.Clear();
             labels.Clear();
             var cnt = collection.Count(x => true);
-            cnt++;
             Console.WriteLine($"Collection contains {cnt} records.");
 
             // TrainingImages.Clear();
@@ -438,7 +446,7 @@ namespace MultiFaceRec
             await collection.InsertOneAsync(new FacialCroppedMatch
             {
                 ImageBytes = ms.ToArray(),
-                Name =filename,
+                Name = filename,
                 Person = text
             });
 

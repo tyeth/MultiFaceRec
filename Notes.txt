@@ -1,5 +1,17 @@
 ﻿Todo: Reinitialise TrainedIMAGES and Labels and FacesCounter and UpdateCrrentPicture etc
 
+Keys from settingsCollection:
+"Use MongoDb instead of %APP_PATH%\TrainedFaces.txt"
+
+"Enable Training Mode for 5secs when I Logon or Unlock the pc."
+
+"Lock the computer if I leave for more than 20 seconds"
+
+"Enable minimize all functionality"
+
+"Use Balloon Tips (Windows Notifications)"
+
+
 =======FROM STACKOVERFLOW=======
 https://blogs.msdn.microsoft.com/shawnfa/2005/05/17/receiving-session-lock-and-unlock-notifications/
 In comments is a further link for logon and logoff... which further links to these code links:
