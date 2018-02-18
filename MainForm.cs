@@ -20,6 +20,7 @@ using Emgu.CV.CvEnum;
 using System.IO;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -133,16 +134,26 @@ namespace MultiFaceRec
             Console.WriteLine($"Collection contains {cnt} records.");
 
             // trainingImages.Clear();
-            var list = collection.FindSync(new ExpressionFilterDefinition<FacialCroppedMatch>(x => true)).ToList();
+            var list = collection.Find(x=>true).ToList();
             //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
             foreach (var doc in list)
             {
-                labels.Add(doc.Person);
+                try
+                {
+
                 var ms = new MemoryStream();
                 ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
+                ms.Flush();
+                ms.Seek(0, SeekOrigin.Begin);
 
                 var bmp = new Bitmap(ms);
                 trainingImages.Add(new Image<Gray, byte>(bmp));
+
+                labels.Add(doc.Person);
+                }
+                catch(Exception e) {
+                    MessageBox.Show("Error with "+doc.Id + " " + e.Message +Environment.NewLine+  e.InnerException?.Message);
+                }
             }
 
             if (trainingImages.Count == 0)
@@ -229,14 +240,20 @@ namespace MultiFaceRec
                 MessageBox.Show("Enable the face detection first", "Training Fail", MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
             }
+            UpdateCurrentBrowsedImage();
+
         }
 
         private async void PersistNewFace(Image<Gray, byte> trainedFace, string text)
         {
             if (collection == null) InitialiseDb();
+            var ms = new MemoryStream();
+            trainedFace.Bitmap.Save(ms,ImageFormat.Bmp);
+            await ms.FlushAsync();
+            ms.Seek(0, SeekOrigin.Begin);
             await collection.InsertOneAsync(new FacialCroppedMatch()
             {
-                ImageBytes = trainedFace.Bytes,
+                ImageBytes = ms.ToArray(),
                 Name = Application.StartupPath + "/TrainedFaces/face" + (trainingImages.Count) + ".bmp",
                 Person = text
             });
@@ -481,12 +498,13 @@ namespace MultiFaceRec
                     Application.Idle -= frmEventHandler;
                     _grabber.Dispose();
                     button1.Enabled = true;
+                    //TRIGGER ALARM OR MINIMIZE ALL OR START SCREEN LOCK TIMER
                 }
                 else if (STATUS == DetectionModeStatusTypes.TRAINING)
                 {
                     BtnSaveFoundFace_Click(new { }, new EventArgs { });
 
-                    time = 200;
+                    time = 100;
                 }
             }
             catch (Exception e)
