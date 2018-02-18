@@ -1,0 +1,89 @@
+================FROM STACKOVERFLOW==============
+How to stop Mongodb .NET driver throwing System.FormatException?
+Ask Question
+up vote
+0
+down vote
+favorite
+MongoDb .NET Driver System.FormatException / DecoderFallbackException
+
+An error occurred while deserializing the description property of class KerbToolsService.Models.promotion: Unable to translate bytes [ED][A0] at index 136 from specified code page to Unicode.
+
+A .NET web API app I wrote to monitor the status of our MongoDB / Node.js based system started throwing a DecoderFallbackException.
+
+Here’s a stack trace
+
+System.FormatException occurred
+  HResult=-2146233033
+Message=An error occurred while deserializing the description property of class KerbToolsService.Models.promotion: Unable to translate bytes [ED][A0] at index 136 from specified code page to Unicode.
+ Source=MongoDB.Bson
+
+StackTrace:
+   at MongoDB.Bson.Serialization.BsonClassMapSerializer`1.DeserializeMemberValue(BsonDeserializationContext context, BsonMemberMap memberMap)
+InnerException: System.Text.DecoderFallbackException
+   HResult=-2147024809
+   Message=Unable to translate bytes [ED][A0] at index 136 from specified code page to Unicode.
+   Source=mscorlib
+   Index=136
+   StackTrace:
+        at System.Text.DecoderExceptionFallbackBuffer.Throw(Byte[] bytesUnknown, Int32 index)
+        at System.Text.DecoderExceptionFallbackBuffer.Fallback(Byte[] bytesUnknown, Int32 index)
+        at System.Text.DecoderFallbackBuffer.InternalFallback(Byte[] bytes, Byte* pBytes)
+        at System.Text.UTF8Encoding.GetCharCount(Byte* bytes, Int32 count, DecoderNLS baseDecoder)
+        at System.String.CreateStringFromEncoding(Byte* bytes, Int32 byteLength, Encoding encoding)
+        at System.Text.UTF8Encoding.GetString(Byte[] bytes, Int32 index, Int32 count)
+        at MongoDB.Bson.IO.Utf8Helper.DecodeUtf8String(Byte[] bytes, Int32 index, Int32 count, UTF8Encoding encoding)
+        at MongoDB.Bson.IO.ByteBufferStream.ReadString(UTF8Encoding encoding)
+        at MongoDB.Bson.IO.BsonBinaryReader.ReadString()
+        at MongoDB.Bson.Serialization.Serializers.StringSerializer.DeserializeValue(BsonDeserializationContext context, BsonDeserializationArgs args)
+        at MongoDB.Bson.Serialization.Serializers.SealedClassSerializerBase`1.Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        at MongoDB.Bson.Serialization.Serializers.SerializerBase`1.MongoDB.Bson.Serialization.IBsonSerializer.Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        at MongoDB.Bson.Serialization.IBsonSerializerExtensions.Deserialize(IBsonSerializer serializer, BsonDeserializationContext context)
+        at MongoDB.Bson.Serialization.BsonClassMapSerializer`1.DeserializeMemberValue(BsonDeserializationContext context, BsonMemberMap memberMap)
+So far I know that a character U+D83D that encoded to ED A0 BD in bson is in a document in the database, and is causing .NET UTF8Encoding to throw a DecoderFallbackException. Other code (the MongoLab UI and our Node.js based application) replaces it with a ? but it kills the query in the .NET driver.
+
+I'd like to get the .NET Mongo driver to behave the same as others and not blow up if it sees invalid UTF-8.
+
+c# mongodb mongodb-.net-driver
+shareimprove this question
+edited Oct 14 '15 at 20:25
+
+Ron Beyer
+5,9291519
+asked Oct 14 '15 at 20:05
+
+Paul Garner
+1
+add a comment
+1 Answer
+active oldest votes
+up vote
+2
+down vote
+Try setting the ReadEncoding property on the MongoClient in this way:
+
+MongoClient client = new new MongoClient(new MongoClientSettings() 
+{ 
+    Server = new MongoServerAddress("<serveraddress>", 27017),
+    ReadEncoding = new System.Text.UTF8Encoding(false, false)
+});
+(Edited: as said by @Craig Wilson, settings are readonly after constructor)
+
+The second parameter of UTF8Encoding is "throwOnInvalidBytes":
+
+true to specify that an exception be thrown when an invalid encoding is detected; otherwise, false
+
+Source: https://jira.mongodb.org/browse/CSHARP-996 and https://msdn.microsoft.com/en-us/library/302sbf78(v=vs.110).aspx
+
+shareimprove this answer
+edited Oct 18 '15 at 20:11
+answered Oct 14 '15 at 21:14
+
+Stefano Castriotta
+1,4051920
+1
+you might need to construct the settings and pass them into the ctor. I think client.Settings is readonly at this point. – Craig Wilson Oct 14 '15 at 21:46
+1
+Thanks for the info. I was wondering why the encoding object was passed down the mongo stack. Yes, the changing the settings throws: A first chance exception of type 'System.InvalidOperationException' MongoClientSettings is frozen. I'll try creating the settings first. – Paul Garner Oct 14 '15 at 22:15
+Solved: I'll edit the answer with details. Thanks Stefano & @craig – Paul Garner Oct 14 '15 at 22:32 
+add a comment
