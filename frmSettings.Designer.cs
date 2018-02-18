@@ -197,7 +197,7 @@
             this.txtMongoUrl.Name = "txtMongoUrl";
             this.txtMongoUrl.Size = new System.Drawing.Size(332, 20);
             this.txtMongoUrl.TabIndex = 12;
-            this.txtMongoUrl.Text = "local";
+            this.txtMongoUrl.Text = "mongodb://localhost:27017";
             this.txtMongoUrl.TextChanged += new System.EventHandler(this.txtMongoUrl_TextChanged);
             // 
             // label6
@@ -307,6 +307,7 @@
             // 
             // checkedListBox1
             // 
+            this.checkedListBox1.CheckOnClick = true;
             this.checkedListBox1.FormattingEnabled = true;
             this.checkedListBox1.HorizontalScrollbar = true;
             this.checkedListBox1.Items.AddRange(new object[] {
@@ -319,6 +320,8 @@
             this.checkedListBox1.Name = "checkedListBox1";
             this.checkedListBox1.Size = new System.Drawing.Size(332, 94);
             this.checkedListBox1.TabIndex = 23;
+            this.checkedListBox1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.checkedListBox1_ItemCheck);
+            this.checkedListBox1.SelectedIndexChanged += new System.EventHandler(this.checkedListBox1_SelectedIndexChanged);
             // 
             // frmSettings
             // 
@@ -393,6 +396,6 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox txtVillains;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.CheckedListBox checkedListBox1;
+        public System.Windows.Forms.CheckedListBox checkedListBox1;
     }
 }

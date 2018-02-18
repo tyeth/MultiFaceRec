@@ -122,7 +122,7 @@ namespace MultiFaceRec
         }
 
         public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
-        private void InitialiseDb()
+        public void InitialiseDb()
         {
             dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
             var dbSettingsNoId = new MongoCollectionSettings()
