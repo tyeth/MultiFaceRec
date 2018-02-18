@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MongoDB.Driver;
 
 namespace MultiFaceRec
 {
@@ -16,6 +17,7 @@ namespace MultiFaceRec
         public frmSettings()
         {
             InitializeComponent();
+
         }
 
         private void Button1_Click(object sender, EventArgs e)
@@ -27,7 +29,38 @@ namespace MultiFaceRec
 
         private void UpdateDbSettings()
         {
-            throw new NotImplementedException();
+             _senderFrm.settingsCollection.DeleteMany(x=>x.Key=="PrivacyList");
+            foreach (var VARIABLE in listBox1.Items)
+            {
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>(  "PrivacyList",  VARIABLE.ToString() ));
+            }
+
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbUrl");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "MongoDbUrl",txtMongoUrl.Text));
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbName");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "MongoDbName",txtDatabaseName.Text));
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Settings");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Settings",txtSettings.Text));
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Trusted");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Trusted",txtTrusted.Text));
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Scanned");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Scanned",txtScanned.Text));
+            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Villains");
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Villains",txtVillains.Text));
+
+            if (txtSettings.Text != "settings" || txtMongoUrl.Text != "local" || txtDatabaseName.Text!="faces")
+            {
+                //Write to new server / database / collection
+
+                // Refresh FrmPrincipal Data Connection Settings and reinitialise.
+                _senderFrm.MongoUrl = txtMongoUrl.Text;
+                _senderFrm.MongoDb = txtDatabaseName.Text;
+                _senderFrm.MongoSettingsCollection = txtSettings.Text;
+                _senderFrm.MongoTrustedCollection = txtTrusted.Text;
+                _senderFrm.MongoScannedCollection = txtScanned.Text;
+                _senderFrm.MongoVillainsCollection = txtVillains.Text;
+
+            }
         }
 
         private void frmSettings_Load(object sender, EventArgs e)
@@ -46,6 +79,13 @@ namespace MultiFaceRec
                 listBox1.Items.Clear();
                 listBox1.Items.AddRange(list);
             }
+
+            txtMongoUrl.Text= _senderFrm.MongoUrl                    ; 
+            txtDatabaseName.Text= _senderFrm.MongoDb                 ;     
+            txtSettings.Text= _senderFrm.MongoSettingsCollection     ; 
+            txtTrusted.Text= _senderFrm.MongoTrustedCollection       ;
+            txtScanned.Text= _senderFrm.MongoScannedCollection       ;
+            txtVillains.Text = _senderFrm.MongoVillainsCollection; 
         }
 
         private void frmSettings_FormClosing(object sender, FormClosingEventArgs e)

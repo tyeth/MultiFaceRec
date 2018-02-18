@@ -120,10 +120,10 @@ namespace MultiFaceRec
             UpdateCurrentBrowsedImage();
         }
 
-        private IMongoCollection<KeyValuePair<string, string>> settingsCollection;
+        public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
         private void InitialiseDb()
         {
-            dbClient = new MongoClient(); //defaults to using admin database on localhost.
+            dbClient = new MongoClient(MongoUrl); //defaults to using admin database on localhost.
             var dbSettings = new MongoCollectionSettings()
             {
                 AssignIdOnInsert = true,
@@ -131,9 +131,9 @@ namespace MultiFaceRec
                 ReadConcern = ReadConcern.Default,
                 ReadEncoding = new UTF8Encoding(false, false)
             };
-            db = dbClient.GetDatabase("faces");
-            settingsCollection = db.GetCollection<KeyValuePair<string, string>>("settings", dbSettings);
-            collection = db.GetCollection<FacialCroppedMatch>("trustedGrey", dbSettings
+            db = dbClient.GetDatabase(MongoDb);
+            settingsCollection = db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettings);
+            collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettings
                );
         }
 
@@ -153,7 +153,7 @@ namespace MultiFaceRec
                 }
             }
             privacyList.Clear();
-            settingsCollection.Find(x => x.Key == "privacyList").ToList().ForEach(x => privacyList.Add(x.Value));
+            settingsCollection.Find(x => x.Key == "PrivacyList").ToList().ForEach(x => privacyList.Add(x.Value));
 
         }
 
@@ -775,6 +775,13 @@ namespace MultiFaceRec
             }
             set { _frm = value; }
         }
+
+        public string MongoUrl = "local";
+        public string MongoDb = "faces";
+        public string MongoSettingsCollection="settings";
+        public string MongoTrustedCollection ="trustedGrey";
+        public string MongoScannedCollection ="scanned";
+        public string MongoVillainsCollection = "villains";
 
         private void btnSettings_Click(object sender, EventArgs e)
         {
