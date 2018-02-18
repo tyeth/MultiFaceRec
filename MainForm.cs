@@ -67,7 +67,7 @@ namespace MultiFaceRec
         private MongoClient dbClient;
 
 
-        private int FacesCounter;
+        public int FacesCounter;
 
         //HaarCascade _eye;
         private MCvFont font = new MCvFont(FONT.CV_FONT_HERSHEY_TRIPLEX, 0.5d, 0.5d);
@@ -106,7 +106,7 @@ namespace MultiFaceRec
         private Image<Gray, byte> result, TrainedFace;
 
         public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
-        private readonly List<Image<Gray, byte>> trainingImages = new List<Image<Gray, byte>>();
+        public readonly List<Image<Gray, byte>> TrainingImages = new List<Image<Gray, byte>>();
         private string username = "Tyeth";
 
         public FrmPrincipal()
@@ -140,7 +140,7 @@ namespace MultiFaceRec
 
             STATUS = DetectionModeStatusTypes.OFF;
             // notifyIcon.ShowBalloonTip(int.MaxValue, "Title", "Ballon Content", ToolTipIcon.Info);
-            FacesCounter = trainingImages.Count - 1;
+            FacesCounter = TrainingImages.Count - 1;
             UpdateCurrentBrowsedImage();
         }
 
@@ -155,7 +155,7 @@ namespace MultiFaceRec
             }
         }
 
-        public Image<Gray, byte> CurrentImage => trainingImages[FacesCounter];
+        public Image<Gray, byte> CurrentImage => TrainingImages[FacesCounter];
 
         private frmSettings myFrmSettings
         {
@@ -180,6 +180,11 @@ namespace MultiFaceRec
 
         public void InitialiseDb()
         {
+            if (settingsCollection != null) settingsCollection = null;
+            if (collection != null) collection = null;
+            if (db != null) db = null;
+            if (dbClient != null) dbClient = null;
+
             dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
             var dbSettingsNoId = new MongoCollectionSettings
             {
@@ -204,7 +209,7 @@ namespace MultiFaceRec
             );
         }
 
-        private void LoadSettings()
+        public void LoadSettings()
         {
             if (settingsCollection == null) InitialiseDb();
 
@@ -232,14 +237,15 @@ namespace MultiFaceRec
                 "Scanned",
                 "Villains"
             });
-            UpdateAndFlagBoolIfChanged(out bool changed, ref MongoUrl,
+            bool changed = false;
+            UpdateAndFlagBoolIfChanged(ref  changed, ref MongoUrl,
                 cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value);
-           UpdateAndFlagBoolIfChanged(out  changed, ref MongoUrl , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value );
-           UpdateAndFlagBoolIfChanged(out  changed, ref MongoDb , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value  );
-           UpdateAndFlagBoolIfChanged(out  changed, ref MongoSettingsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value );
-           UpdateAndFlagBoolIfChanged(out  changed, ref MongoTrustedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value );
-           UpdateAndFlagBoolIfChanged(out  changed, ref MongoScannedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value );
-            UpdateAndFlagBoolIfChanged(out  changed, ref MongoVillainsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value );
+           UpdateAndFlagBoolIfChanged(ref changed, ref MongoUrl , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value );
+           UpdateAndFlagBoolIfChanged(ref changed, ref MongoDb , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value  );
+           UpdateAndFlagBoolIfChanged(ref changed, ref MongoSettingsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value );
+           UpdateAndFlagBoolIfChanged(ref changed, ref MongoTrustedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value );
+           UpdateAndFlagBoolIfChanged(ref changed, ref MongoScannedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value );
+            UpdateAndFlagBoolIfChanged(ref changed, ref MongoVillainsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value );
             if (changed)
             {
                 InitialiseDb();
@@ -247,17 +253,26 @@ namespace MultiFaceRec
             }
         }
 
-        private void UpdateAndFlagBoolIfChanged(out bool b, ref string str, string value, bool acceptNull = false, bool acceptWhiteSpace = false)
+        /// <summary>
+        /// A function for compound change tracking.
+        /// If bool=true or str!=value and value not null (an empty string will cause a change)
+        /// </summary>
+        /// <returns>bool to indicate change of specific value</returns>
+        /// <param name="bb">REF: initial bool to change to true if str changes or left as true if bool is initially true.</param>
+        /// <param name="str">a reference to a string variable to change to value if not null</param>
+        /// <param name="value">the value to test for null and against str</param>
+        /// <param name="acceptNull">CURRENTLY UNUSED</param>
+        /// <param name="acceptWhiteSpace">CURRENTLY UNUSED</param>
+        private bool UpdateAndFlagBoolIfChanged(ref bool bb, ref string str, string value, bool acceptNull = false, bool acceptWhiteSpace = false)
         {
+            bool b = false;
             if (str != value && value != null)
             {
                 str = value;
                 b = true;
             }
-            else
-            {
-                b = false;
-            }
+            bb = b || bb;
+            return b;
         }
 
         private IList<KeyValuePair<string, string>> GetSettingsFromDbCollection(IEnumerable<string> keysEnumerable)
@@ -292,17 +307,17 @@ namespace MultiFaceRec
             throw new NotImplementedException();
         }
 
-        private void LoadTrainedFacesForStartup()
+        public void LoadTrainedFacesForStartup()
         {
             if (collection == null) InitialiseDb();
             //if (collection.Count(x => true) == 0) throw new DataException("The Database has no records or the connection is broken.");
-            trainingImages.Clear();
+            TrainingImages.Clear();
             labels.Clear();
             var cnt = collection.Count(x => true);
             cnt++;
             Console.WriteLine($"Collection contains {cnt} records.");
 
-            // trainingImages.Clear();
+            // TrainingImages.Clear();
             var list = collection.Find(x => true).ToList();
             //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
             foreach (var doc in list)
@@ -314,7 +329,7 @@ namespace MultiFaceRec
                     ms.Seek(0, SeekOrigin.Begin);
 
                     var bmp = new Bitmap(ms);
-                    trainingImages.Add(new Image<Gray, byte>(bmp));
+                    TrainingImages.Add(new Image<Gray, byte>(bmp));
 
                     labels.Add(doc.Person);
                 }
@@ -324,10 +339,10 @@ namespace MultiFaceRec
                                     e.InnerException?.Message);
                 }
 
-            if (trainingImages.Count == 0)
+            ContTrain = labels.Count;
+            if (TrainingImages.Count == 0)
                 throw new DataException("The Database has no records or the connection is broken.");
 
-            ContTrain = labels.Count;
 
             ////Load of previus trainned faces and labels for each image
             //string Labelsinfo = File.ReadAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt");
@@ -339,7 +354,7 @@ namespace MultiFaceRec
             //for (int tf = 1; tf < NumLabels + 1; tf++)
             //{
             //    LoadFaces = "face" + tf + ".bmp";
-            //    trainingImages.Add(new Image<Gray, byte>(Application.StartupPath + "/TrainedFaces/" + LoadFaces));
+            //    TrainingImages.Add(new Image<Gray, byte>(Application.StartupPath + "/TrainedFaces/" + LoadFaces));
             //    labels.Add(Labels[tf]);
             //}
         }
@@ -391,7 +406,7 @@ namespace MultiFaceRec
                 //resize face detected image for force to compare the same size with the 
                 //test image with cubic interpolation type method
                 TrainedFace = result.Resize(100, 100, INTER.CV_INTER_CUBIC);
-                trainingImages.Add(TrainedFace);
+                TrainingImages.Add(TrainedFace);
                 labels.Add(TxtUsername.Text);
 
                 //Show face added in gray scale
@@ -419,7 +434,7 @@ namespace MultiFaceRec
             trainedFace.Bitmap.Save(ms, ImageFormat.Bmp);
             await ms.FlushAsync();
             ms.Seek(0, SeekOrigin.Begin);
-            var filename = Application.StartupPath + "/TrainedFaces/face" + trainingImages.Count + ".bmp";
+            var filename = Application.StartupPath + "/TrainedFaces/face" + TrainingImages.Count + ".bmp";
             await collection.InsertOneAsync(new FacialCroppedMatch
             {
                 ImageBytes = ms.ToArray(),
@@ -430,12 +445,12 @@ namespace MultiFaceRec
             trainedFace.Save(filename);
             //Write the number of triained faces in a file text for further load
             File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-                trainingImages.ToArray().Length.ToString() + "%");
+                TrainingImages.ToArray().Length.ToString() + "%");
 
             //Write the labels of triained faces in a file text for further load
-            for (int i = 1; i < trainingImages.ToArray().Length + 1; i++)
+            for (int i = 1; i < TrainingImages.ToArray().Length + 1; i++)
             {
-                trainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
+                TrainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
                 File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
                     labels.ToArray()[i - 1] + "%");
             }
@@ -472,14 +487,14 @@ namespace MultiFaceRec
                 _currentFrame.Draw(f.rect, new Bgr(Color.Red), 2);
 
 
-                if (trainingImages.ToArray().Length != 0)
+                if (TrainingImages.ToArray().Length != 0)
                 {
                     //TermCriteria for face recognition with numbers of trained images like maxIteration
                     var termCrit = new MCvTermCriteria(ContTrain, 0.001);
 
                     //Eigen face recognizer
                     var recognizer = new EigenObjectRecognizer(
-                        trainingImages.ToArray(),
+                        TrainingImages.ToArray(),
                         labels.ToArray(),
                         3000,
                         ref termCrit);
@@ -743,14 +758,14 @@ namespace MultiFaceRec
         public void GetNextPhoto()
         {
             FacesCounter--;
-            if (FacesCounter == -1) FacesCounter = trainingImages.Count - 1;
+            if (FacesCounter == -1) FacesCounter = TrainingImages.Count - 1;
             UpdateCurrentBrowsedImage();
         }
 
         public void GetPreviousPhoto()
         {
             FacesCounter++;
-            if (FacesCounter == trainingImages.Count) FacesCounter = 0;
+            if (FacesCounter == TrainingImages.Count) FacesCounter = 0;
             UpdateCurrentBrowsedImage();
         }
 
@@ -758,7 +773,7 @@ namespace MultiFaceRec
         {
             try
             {
-                txtCurrentPicture.Text = $"{FacesCounter + 1}/{trainingImages.Count} {labels[FacesCounter]}";
+                txtCurrentPicture.Text = $"{FacesCounter + 1}/{TrainingImages.Count} {labels[FacesCounter]}";
                 pictureBox1.Image = CurrentImage.Bitmap;
                 pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox1.Refresh();
