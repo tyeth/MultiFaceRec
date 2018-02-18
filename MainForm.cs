@@ -25,6 +25,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
+using MinimizeAll;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -741,11 +742,32 @@ namespace MultiFaceRec
             //Process.Start("Donate.html");
         }
 
+        private static List<string> privacyList=null;
+
         private static string GetRunningProcesses()
         {
             const string PROCS = "Running Processes...";
             var sb = new StringBuilder(PROCS);
 
+            //privacyList = new List<string>()
+            //{
+            //    "outlook",
+            //    "microsoftedgecp" ,
+            //    "microsoftedge",  
+            //    "edge",
+            //    "firefox",
+            //    "chrome",
+            //    "winword",
+            //    "msteams",
+            //    "teams",
+            //    "skype",
+            //    "hangouts",
+            //    "thunderbird","eudora",
+            //    "mail",
+            //    "msmail"
+            //};
+
+           // if(Process.GetProcesses().Select(x => x).Any(process => privacyList.Contains(process.ProcessName) )) MinimizeAll.Minimizer.MinimizeAll();
             Process.GetProcesses().Select(x => x).ToList().ForEach(process =>
             {
                 var x = process.ProcessName;
