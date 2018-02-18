@@ -21,19 +21,19 @@ namespace MultiFaceRec
             MB_ICONEXCLAMATION = 0x00000030,
             MB_ICONINFORMATION = 0x00000040
         }
-
-        [DllImport("shlwapi.dll", EntryPoint = "#185", ExactSpelling = true, PreserveSig = false)]
+        
+        [DllImport("shlwapi.dll", EntryPoint = "SHMessageBoxCheckA" /*"#185"*/, ExactSpelling = true, PreserveSig = false)]
         public static extern int SHMessageBoxCheck(
 
-            [In] IntPtr hwnd,
+            [In][Optional] IntPtr hwnd,
 
             [In] String pszText,
 
             [In] String pszTitle,
 
-            [In] MessageBoxCheckFlags uType,
+             MessageBoxCheckFlags uType,
 
-            [In] int iDefault,
+             int iDefault,
 
             [In] string pszRegVal
 
@@ -72,7 +72,7 @@ namespace MultiFaceRec
                     text,
                     title,
                     flags,
-                    0,
+                    -1,
                     Application.ExecutablePath+"!"+form.Name // This last argument is the value of the registry key
                 );
             }

@@ -4,10 +4,14 @@
 //"Serg3ant" for the delveloper comunity
 // Sergiogut1805@hotmail.com
 //Regards from Bucaramanga-Colombia ;)
+//
+//Also Greetings from Bristol, UK.
+//tyethgundry@gmail.com
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using Emgu.CV;
@@ -20,6 +24,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace MultiFaceRec
 {
@@ -34,6 +40,7 @@ namespace MultiFaceRec
     public partial class FrmPrincipal : Form
     {
         private DetectionModeStatusTypes _detectionModeStatus;
+
         // ReSharper disable once InconsistentNaming
         public DetectionModeStatusTypes STATUS
         {
@@ -47,14 +54,19 @@ namespace MultiFaceRec
 
         private void UpdateMenu(DetectionModeStatusTypes value)
         {
-            currentDectectionModeStatusToolStripMenuItem.Text = currentDectectionModeStatusToolStripMenuItem.Tag.ToString()
-                .Replace("STATUS", STATUS == DetectionModeStatusTypes.OFF ? "OFF" : STATUS == DetectionModeStatusTypes.ON ? "ON" : "Training");
+            currentDectectionModeStatusToolStripMenuItem.Text = currentDectectionModeStatusToolStripMenuItem.Tag
+                .ToString()
+                .Replace("STATUS",
+                    STATUS == DetectionModeStatusTypes.OFF ? "OFF" :
+                    STATUS == DetectionModeStatusTypes.ON ? "ON" : "Training");
         }
 
         //Declararation of all variables, vectors and haarcascades
         private Image<Bgr, Byte> _currentFrame;
         private Capture _grabber;
+
         private HaarCascade _face;
+
         //HaarCascade _eye;
         MCvFont font = new MCvFont(FONT.CV_FONT_HERSHEY_TRIPLEX, 0.5d, 0.5d);
         Image<Gray, byte> result, TrainedFace = null;
@@ -66,6 +78,9 @@ namespace MultiFaceRec
         string name, names = null;
         private string username = "Tyeth";
         private EventHandler frmEventHandler;
+        private MongoClient dbClient;
+        private IMongoDatabase db;
+        private IMongoCollection<FacialCroppedMatch> collection;
 
         public FrmPrincipal()
         {
@@ -75,19 +90,7 @@ namespace MultiFaceRec
             //_eye = new HaarCascade("haarcascade_eye.xml");
             try
             {
-                //Load of previus trainned faces and labels for each image
-                string Labelsinfo = File.ReadAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt");
-                string[] Labels = Labelsinfo.Split('%');
-                NumLabels = Convert.ToInt16(Labels[0]);
-                ContTrain = NumLabels;
-                string LoadFaces;
-
-                for (int tf = 1; tf < NumLabels + 1; tf++)
-                {
-                    LoadFaces = "face" + tf + ".bmp";
-                    trainingImages.Add(new Image<Gray, byte>(Application.StartupPath + "/TrainedFaces/" + LoadFaces));
-                    labels.Add(Labels[tf]);
-                }
+                LoadTrainedFacesForStartup();
             }
             catch (Exception e)
             {
@@ -99,16 +102,77 @@ namespace MultiFaceRec
 
             STATUS = DetectionModeStatusTypes.OFF;
             // notifyIcon.ShowBalloonTip(int.MaxValue, "Title", "Ballon Content", ToolTipIcon.Info);
+            FacesCounter = trainingImages.Count - 1;
+            UpdateCurrentBrowsedImage();
+        }
+
+
+        private void InitialiseDb()
+        {
+            dbClient = new MongoClient(); //defaults to using admin database on localhost.
+
+            db = dbClient.GetDatabase("faces");
+
+            collection = db.GetCollection<FacialCroppedMatch>("trustedGrey",
+                new MongoCollectionSettings()
+                {
+                    AssignIdOnInsert = true,
+                    ReadPreference = ReadPreference.Primary,
+                    ReadConcern = ReadConcern.Default
+                });
+        }
+
+        private void LoadTrainedFacesForStartup()
+        {
+            if (collection == null) InitialiseDb();
+            //if (collection.Count(x => true) == 0) throw new DataException("The Database has no records or the connection is broken.");
+            // labels.Clear();
+            long cnt = collection.Count(x => true);
+            cnt++;
+            Console.WriteLine($"Collection contains {cnt} records.");
+
+            // trainingImages.Clear();
+            var list = collection.FindSync(new ExpressionFilterDefinition<FacialCroppedMatch>(x => true)).ToList();
+            //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
+            foreach (var doc in list)
+            {
+                labels.Add(doc.Person);
+                var ms = new MemoryStream();
+                ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
+
+                var bmp = new Bitmap(ms);
+                trainingImages.Add(new Image<Gray, byte>(bmp));
+            }
+
+            if (trainingImages.Count == 0)
+                throw new DataException("The Database has no records or the connection is broken.");
+
+            ContTrain = labels.Count;
+
+            ////Load of previus trainned faces and labels for each image
+            //string Labelsinfo = File.ReadAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt");
+            //string[] Labels = Labelsinfo.Split('%');
+            //NumLabels = Convert.ToInt16(Labels[0]);
+            //ContTrain = NumLabels;
+            //string LoadFaces;
+
+            //for (int tf = 1; tf < NumLabels + 1; tf++)
+            //{
+            //    LoadFaces = "face" + tf + ".bmp";
+            //    trainingImages.Add(new Image<Gray, byte>(Application.StartupPath + "/TrainedFaces/" + LoadFaces));
+            //    labels.Add(Labels[tf]);
+            //}
         }
 
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(textBox1.Text))
+            if (string.IsNullOrEmpty(TxtUsername.Text))
             {
                 MessageBox.Show("Enter a name to store the images under first, then click this button again");
                 return;
             }
+
             //Initialize the capture device
             _grabber = new Capture();
             _grabber.QueryFrame();
@@ -119,7 +183,7 @@ namespace MultiFaceRec
         }
 
 
-        private void button2_Click(object sender, System.EventArgs e)
+        private void BtnSaveFoundFace_Click(object sender, System.EventArgs e)
         {
             try
             {
@@ -148,35 +212,45 @@ namespace MultiFaceRec
                 //test image with cubic interpolation type method
                 TrainedFace = result.Resize(100, 100, Emgu.CV.CvEnum.INTER.CV_INTER_CUBIC);
                 trainingImages.Add(TrainedFace);
-                labels.Add(textBox1.Text);
+                labels.Add(TxtUsername.Text);
 
                 //Show face added in gray scale
                 imageBox1.Image = TrainedFace;
+                PersistNewFace(TrainedFace, TxtUsername.Text);
 
-                //Write the number of triained faces in a file text for further load
-                File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-                    trainingImages.ToArray().Length.ToString() + "%");
+                this.MessageBoxCheck(TxtUsername.Text + "´s face detected and added :)", "Training OK");
 
-                //Write the labels of triained faces in a file text for further load
-                for (int i = 1; i < trainingImages.ToArray().Length + 1; i++)
-                {
-                    trainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
-                    File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-                        labels.ToArray()[i - 1] + "%");
-                }
-                this.MessageBoxCheck( textBox1.Text + "´s face detected and added :)", "Training OK");
-
-                //MessageBox.Show(textBox1.Text + "´s face detected and added :)", "Training OK", MessageBoxButtons.OK,
+                //MessageBox.Show(TxtUsername.Text + "´s face detected and added :)", "Training OK", MessageBoxButtons.OK,
                 //    MessageBoxIcon.Information);
             }
             catch
             {
-                
-                MessageBox.Show("Enable the face detection first", "Training Fail", MessageBoxButtons.OK ,
+                MessageBox.Show("Enable the face detection first", "Training Fail", MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
             }
         }
 
+        private async void PersistNewFace(Image<Gray, byte> trainedFace, string text)
+        {
+            if (collection == null) InitialiseDb();
+            await collection.InsertOneAsync(new FacialCroppedMatch()
+            {
+                ImageBytes = trainedFace.Bytes,
+                Name = Application.StartupPath + "/TrainedFaces/face" + (trainingImages.Count) + ".bmp",
+                Person = text
+            });
+            ////Write the number of triained faces in a file text for further load
+            //File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
+            //    trainingImages.ToArray().Length.ToString() + "%");
+
+            ////Write the labels of triained faces in a file text for further load
+            //for (int i = 1; i < trainingImages.ToArray().Length + 1; i++)
+            //{
+            //    trainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
+            //    File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
+            //        labels.ToArray()[i - 1] + "%");
+            //}
+        }
 
         void FrameGrabber(object sender, EventArgs e)
         {
@@ -224,7 +298,8 @@ namespace MultiFaceRec
                     name = recognizer.Recognize(result);
 
                     //Draw the label for each face detected and recognized
-                    _currentFrame.Draw(name, ref font, new Point(f.rect.X - 2, f.rect.Y - 2), new Bgr(Color.LightGreen));
+                    _currentFrame.Draw(name, ref font, new Point(f.rect.X - 2, f.rect.Y - 2),
+                        new Bgr(Color.LightGreen));
                 }
 
                 NamePersons[t - 1] = name;
@@ -253,7 +328,6 @@ namespace MultiFaceRec
                 //                    eyeRect.Offset(f.rect.X, f.rect.Y);
                 //                    _currentFrame.Draw(eyeRect, new Bgr(Color.Blue), 2);
                 //                }
-
             }
 
             t = 0;
@@ -265,14 +339,24 @@ namespace MultiFaceRec
                 count++;
             }
 
-            if (count > 1) RegisterPryingEyes();
-            if ((count == 1 && names.Replace(", ", "") != "Tyeth")) RegisterUnrecognisedUser();
-            //Show the faces procesed and recognized
-            imageBoxFrameGrabber.Image = _currentFrame;
-            label4.Text = names;
-            names = "";
-            //Clear the list(vector) of names
-            NamePersons.Clear();
+            if (count > 1)
+            {
+                RegisterPryingEyes();
+            }
+            else if ((count == 1 && names.Replace(", ", "") != TxtUsername.Text))
+            {
+                RegisterUnrecognisedUser();
+            }
+
+
+            {
+                //Show the faces procesed and recognized
+                imageBoxFrameGrabber.Image = _currentFrame;
+                label4.Text = names;
+                names = "";
+                //Clear the list(vector) of names
+                NamePersons.Clear();
+            }
         }
 
 
@@ -317,7 +401,7 @@ namespace MultiFaceRec
             var adressEditBox = edgeCommandsWindow.FindFirst(TreeScope.Children,
                 new PropertyCondition(AutomationElement.AutomationIdProperty, "addressEditBox"));
 
-            return ((TextPattern)adressEditBox.GetCurrentPattern(TextPattern.Pattern)).DocumentRange.GetText(
+            return ((TextPattern) adressEditBox.GetCurrentPattern(TextPattern.Pattern)).DocumentRange.GetText(
                 int.MaxValue);
         }
 
@@ -327,7 +411,9 @@ namespace MultiFaceRec
             {
                 Hide();
                 notifyIcon.Visible = true;
-                notifyIcon.Text = notifyIcon.Text.Substring(0, notifyIcon.Text.Length + 10 >= 64 ? 53 : notifyIcon.Text.Length) + " MINIMIZED";
+                notifyIcon.Text =
+                    notifyIcon.Text.Substring(0, notifyIcon.Text.Length + 10 >= 64 ? 53 : notifyIcon.Text.Length) +
+                    " MINIMIZED";
             }
         }
 
@@ -335,49 +421,97 @@ namespace MultiFaceRec
         {
             Show();
             WindowState = FormWindowState.Normal;
-            if (notifyIcon.Text.EndsWith("MINIMIZED")) notifyIcon.Text = notifyIcon.Text.Substring(0, notifyIcon.Text.Length - " MINIMIZED".Length);
+            if (notifyIcon.Text.EndsWith("MINIMIZED"))
+                notifyIcon.Text = notifyIcon.Text.Substring(0, notifyIcon.Text.Length - " MINIMIZED".Length);
         }
 
         private void notifyIcon_BalloonTipClicked(object sender, EventArgs e)
         {
             Debug.Write("********************************************CLikedD");
-
         }
 
         private void notifyIcon_BalloonTipClosed(object sender, EventArgs e)
         {
             Debug.Write("********************************************CLOSED");
-
         }
 
 
-        private void RegisterUnrecognisedUser()
-        {
+        private int FacesCounter = 0;
 
+        public Image<Gray, byte> CurrentImage
+        {
+            get { return trainingImages[FacesCounter]; }
+        }
+
+        public void GetNextPhoto()
+        {
+            FacesCounter--;
+            if (FacesCounter == -1) FacesCounter = trainingImages.Count - 1;
+            UpdateCurrentBrowsedImage();
+        }
+
+        public void GetPreviousPhoto()
+        {
+            FacesCounter++;
+            if (FacesCounter == trainingImages.Count) FacesCounter = 0;
+            UpdateCurrentBrowsedImage();
+        }
+
+        public void UpdateCurrentBrowsedImage()
+        {
             try
             {
-                button2_Click(new{}, new EventArgs { });
-                if (STATUS != DetectionModeStatusTypes.TRAINING)
+                pictureBox1.Image = CurrentImage.Bitmap;
+                pictureBox1.SizeMode=PictureBoxSizeMode.StretchImage;
+                pictureBox1.Refresh();
+            }finally 
+            {
+            }
+        }
+
+        private void RegisterUnrecognisedUser()
+        {
+            int time = 2000;
+            try
+            {
+                if (STATUS == DetectionModeStatusTypes.ON)
                 {
                     Application.Idle -= frmEventHandler;
                     _grabber.Dispose();
                     button1.Enabled = true;
                 }
+                else if (STATUS == DetectionModeStatusTypes.TRAINING)
+                {
+                    BtnSaveFoundFace_Click(new { }, new EventArgs { });
+
+                    time = 200;
+                }
             }
-            catch (Exception e) { }
-            notifyIcon.ShowBalloonTip(int.MaxValue, "Unrecognised Face!", $"The current face on screen is not {username}", ToolTipIcon.Error);
+            catch (Exception e)
+            {
+            }
+
+            notifyIcon.ShowBalloonTip(time, "Unrecognised Face!", $"The current face on screen is not {username}",
+                ToolTipIcon.Error);
         }
 
         private void RegisterPryingEyes()
         {
             try
             {
-                Application.Idle -= frmEventHandler;
-                _grabber.Dispose();
-                button1.Enabled = true;
+                if (STATUS == DetectionModeStatusTypes.ON)
+                {
+                    Application.Idle -= frmEventHandler;
+                    _grabber.Dispose();
+                    button1.Enabled = true;
+                }
             }
-            catch (Exception e) { }
-            notifyIcon.ShowBalloonTip(int.MaxValue, "Unwelcome Face?", $"Watchout {username}, There's Prying Eyes About", ToolTipIcon.Warning);
+            catch (Exception e)
+            {
+            }
+
+            notifyIcon.ShowBalloonTip(int.MaxValue, "Unwelcome Face?",
+                $"Watchout {username}, There's Prying Eyes About", ToolTipIcon.Warning);
         }
 
         private void turnONDetectionModeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -388,17 +522,26 @@ namespace MultiFaceRec
         private void turnOFFDetectionModeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             STATUS = DetectionModeStatusTypes.OFF;
-
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            username = textBox1.Text;
+            username = TxtUsername.Text;
         }
 
         private void setDetectionModeToTrainingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             STATUS = DetectionModeStatusTypes.TRAINING;
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            GetPreviousPhoto();
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            GetNextPhoto();
         }
 
         public static string GetEdgeTitle(AutomationElement edgeWindow)

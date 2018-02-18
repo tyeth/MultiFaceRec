@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.IdGenerators;
 
 namespace MultiFaceRec
 {
@@ -13,6 +15,8 @@ namespace MultiFaceRec
         [STAThread]
         static void Main()
         {
+            BsonSerializer.RegisterIdGenerator(typeof(string), new StringObjectIdGenerator());
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FrmPrincipal());

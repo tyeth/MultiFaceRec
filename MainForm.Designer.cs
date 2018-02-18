@@ -32,9 +32,18 @@ namespace MultiFaceRec
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmPrincipal));
-            this.button2 = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.BtnSaveFoundFace = new System.Windows.Forms.Button();
+            this.TxtUsername = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.pauseDetectionForTheNext5MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pauseDetectionForTheNext15MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.turnONDetectionModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.turnOFFDetectionModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setDetectionModeToTrainingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showTrainingInterfaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.currentDectectionModeStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
             this.imageBox1 = new Emgu.CV.UI.ImageBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -47,54 +56,119 @@ namespace MultiFaceRec
             this.btnDonate = new System.Windows.Forms.Button();
             this.imageBoxFrameGrabber = new Emgu.CV.UI.ImageBox();
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.pauseDetectionForTheNext5MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pauseDetectionForTheNext15MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.turnONDetectionModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.turnOFFDetectionModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showTrainingInterfaceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.currentDectectionModeStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setDetectionModeToTrainingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.btnPrev = new System.Windows.Forms.Button();
+            this.btnNext = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
+            this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBoxFrameGrabber)).BeginInit();
-            this.contextMenuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
-            // button2
+            // BtnSaveFoundFace
             // 
-            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.button2.Location = new System.Drawing.Point(87, 201);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(87, 31);
-            this.button2.TabIndex = 3;
-            this.button2.Text = "2. Add face";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.BtnSaveFoundFace.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.BtnSaveFoundFace.Location = new System.Drawing.Point(87, 201);
+            this.BtnSaveFoundFace.Name = "BtnSaveFoundFace";
+            this.BtnSaveFoundFace.Size = new System.Drawing.Size(87, 31);
+            this.BtnSaveFoundFace.TabIndex = 3;
+            this.BtnSaveFoundFace.Text = "2. Add face";
+            this.BtnSaveFoundFace.UseVisualStyleBackColor = true;
+            this.BtnSaveFoundFace.Click += new System.EventHandler(this.BtnSaveFoundFace_Click);
             // 
-            // textBox1
+            // TxtUsername
             // 
-            this.textBox1.Location = new System.Drawing.Point(67, 170);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(107, 20);
-            this.textBox1.TabIndex = 7;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.TxtUsername.Location = new System.Drawing.Point(67, 170);
+            this.TxtUsername.Name = "TxtUsername";
+            this.TxtUsername.Size = new System.Drawing.Size(107, 20);
+            this.TxtUsername.TabIndex = 7;
+            this.TxtUsername.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // groupBox1
             // 
             this.groupBox1.ContextMenuStrip = this.contextMenuStrip1;
+            this.groupBox1.Controls.Add(this.btnNext);
+            this.groupBox1.Controls.Add(this.btnPrev);
+            this.groupBox1.Controls.Add(this.pictureBox1);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.textBox1);
+            this.groupBox1.Controls.Add(this.TxtUsername);
             this.groupBox1.Controls.Add(this.imageBox1);
-            this.groupBox1.Controls.Add(this.button2);
+            this.groupBox1.Controls.Add(this.BtnSaveFoundFace);
             this.groupBox1.Location = new System.Drawing.Point(342, 12);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(184, 242);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Training: ";
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.pauseDetectionForTheNext5MinutesToolStripMenuItem,
+            this.pauseDetectionForTheNext15MinutesToolStripMenuItem,
+            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem,
+            this.turnONDetectionModeToolStripMenuItem,
+            this.turnOFFDetectionModeToolStripMenuItem,
+            this.setDetectionModeToTrainingToolStripMenuItem,
+            this.showTrainingInterfaceToolStripMenuItem,
+            this.currentDectectionModeStatusToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(316, 180);
+            // 
+            // pauseDetectionForTheNext5MinutesToolStripMenuItem
+            // 
+            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Name = "pauseDetectionForTheNext5MinutesToolStripMenuItem";
+            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Text = "Pause Detection for the next 5 minutes";
+            // 
+            // pauseDetectionForTheNext15MinutesToolStripMenuItem
+            // 
+            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Name = "pauseDetectionForTheNext15MinutesToolStripMenuItem";
+            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Text = "Pause Detection for the next 15 minutes";
+            // 
+            // pauseDetectioinForTheNext60MinutesToolStripMenuItem
+            // 
+            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Name = "pauseDetectioinForTheNext60MinutesToolStripMenuItem";
+            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Text = "Pause Detectioin for the next 60 minutes";
+            // 
+            // turnONDetectionModeToolStripMenuItem
+            // 
+            this.turnONDetectionModeToolStripMenuItem.Name = "turnONDetectionModeToolStripMenuItem";
+            this.turnONDetectionModeToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.turnONDetectionModeToolStripMenuItem.Text = "Set Detection Mode *ON*";
+            this.turnONDetectionModeToolStripMenuItem.Click += new System.EventHandler(this.turnONDetectionModeToolStripMenuItem_Click);
+            // 
+            // turnOFFDetectionModeToolStripMenuItem
+            // 
+            this.turnOFFDetectionModeToolStripMenuItem.Name = "turnOFFDetectionModeToolStripMenuItem";
+            this.turnOFFDetectionModeToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.turnOFFDetectionModeToolStripMenuItem.Text = "Turn *OFF* Detection Mode";
+            this.turnOFFDetectionModeToolStripMenuItem.Click += new System.EventHandler(this.turnOFFDetectionModeToolStripMenuItem_Click);
+            // 
+            // setDetectionModeToTrainingToolStripMenuItem
+            // 
+            this.setDetectionModeToTrainingToolStripMenuItem.Name = "setDetectionModeToTrainingToolStripMenuItem";
+            this.setDetectionModeToTrainingToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.setDetectionModeToTrainingToolStripMenuItem.Text = "Set Detection Mode to *Training*";
+            this.setDetectionModeToTrainingToolStripMenuItem.Click += new System.EventHandler(this.setDetectionModeToTrainingToolStripMenuItem_Click);
+            // 
+            // showTrainingInterfaceToolStripMenuItem
+            // 
+            this.showTrainingInterfaceToolStripMenuItem.Name = "showTrainingInterfaceToolStripMenuItem";
+            this.showTrainingInterfaceToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.showTrainingInterfaceToolStripMenuItem.Text = "Show Training interface";
+            // 
+            // currentDectectionModeStatusToolStripMenuItem
+            // 
+            this.currentDectectionModeStatusToolStripMenuItem.Enabled = false;
+            this.currentDectectionModeStatusToolStripMenuItem.Name = "currentDectectionModeStatusToolStripMenuItem";
+            this.currentDectectionModeStatusToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
+            this.currentDectectionModeStatusToolStripMenuItem.Tag = "-=<{ Currently Dectection Mode == STATUS  }>=-";
+            this.currentDectectionModeStatusToolStripMenuItem.Text = "-=<{ Currently Dectection Mode == Off  }>=-";
             // 
             // label1
             // 
@@ -225,72 +299,33 @@ namespace MultiFaceRec
             this.notifyIcon.BalloonTipClosed += new System.EventHandler(this.notifyIcon_BalloonTipClosed);
             this.notifyIcon.DoubleClick += new System.EventHandler(this.notifyIcon_DoubleClick);
             // 
-            // contextMenuStrip1
+            // pictureBox1
             // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.pauseDetectionForTheNext5MinutesToolStripMenuItem,
-            this.pauseDetectionForTheNext15MinutesToolStripMenuItem,
-            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem,
-            this.turnONDetectionModeToolStripMenuItem,
-            this.turnOFFDetectionModeToolStripMenuItem,
-            this.setDetectionModeToTrainingToolStripMenuItem,
-            this.showTrainingInterfaceToolStripMenuItem,
-            this.currentDectectionModeStatusToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(316, 180);
+            this.pictureBox1.Location = new System.Drawing.Point(7, 190);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(54, 52);
+            this.pictureBox1.TabIndex = 9;
+            this.pictureBox1.TabStop = false;
             // 
-            // pauseDetectionForTheNext5MinutesToolStripMenuItem
+            // btnPrev
             // 
-            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Name = "pauseDetectionForTheNext5MinutesToolStripMenuItem";
-            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.pauseDetectionForTheNext5MinutesToolStripMenuItem.Text = "Pause Detection for the next 5 minutes";
+            this.btnPrev.Location = new System.Drawing.Point(67, 197);
+            this.btnPrev.Name = "btnPrev";
+            this.btnPrev.Size = new System.Drawing.Size(14, 20);
+            this.btnPrev.TabIndex = 10;
+            this.btnPrev.Text = "<";
+            this.btnPrev.UseVisualStyleBackColor = true;
+            this.btnPrev.Click += new System.EventHandler(this.btnPrev_Click);
             // 
-            // pauseDetectionForTheNext15MinutesToolStripMenuItem
+            // btnNext
             // 
-            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Name = "pauseDetectionForTheNext15MinutesToolStripMenuItem";
-            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.pauseDetectionForTheNext15MinutesToolStripMenuItem.Text = "Pause Detection for the next 15 minutes";
-            // 
-            // pauseDetectioinForTheNext60MinutesToolStripMenuItem
-            // 
-            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Name = "pauseDetectioinForTheNext60MinutesToolStripMenuItem";
-            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.pauseDetectioinForTheNext60MinutesToolStripMenuItem.Text = "Pause Detectioin for the next 60 minutes";
-            // 
-            // turnONDetectionModeToolStripMenuItem
-            // 
-            this.turnONDetectionModeToolStripMenuItem.Name = "turnONDetectionModeToolStripMenuItem";
-            this.turnONDetectionModeToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.turnONDetectionModeToolStripMenuItem.Text = "Set Detection Mode *ON*";
-            this.turnONDetectionModeToolStripMenuItem.Click += new System.EventHandler(this.turnONDetectionModeToolStripMenuItem_Click);
-            // 
-            // turnOFFDetectionModeToolStripMenuItem
-            // 
-            this.turnOFFDetectionModeToolStripMenuItem.Name = "turnOFFDetectionModeToolStripMenuItem";
-            this.turnOFFDetectionModeToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.turnOFFDetectionModeToolStripMenuItem.Text = "Turn *OFF* Detection Mode";
-            this.turnOFFDetectionModeToolStripMenuItem.Click += new System.EventHandler(this.turnOFFDetectionModeToolStripMenuItem_Click);
-            // 
-            // showTrainingInterfaceToolStripMenuItem
-            // 
-            this.showTrainingInterfaceToolStripMenuItem.Name = "showTrainingInterfaceToolStripMenuItem";
-            this.showTrainingInterfaceToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.showTrainingInterfaceToolStripMenuItem.Text = "Show Training interface";
-            // 
-            // currentDectectionModeStatusToolStripMenuItem
-            // 
-            this.currentDectectionModeStatusToolStripMenuItem.Enabled = false;
-            this.currentDectectionModeStatusToolStripMenuItem.Name = "currentDectectionModeStatusToolStripMenuItem";
-            this.currentDectectionModeStatusToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.currentDectectionModeStatusToolStripMenuItem.Tag = "-=<{ Currently Dectection Mode == STATUS  }>=-";
-            this.currentDectectionModeStatusToolStripMenuItem.Text = "-=<{ Currently Dectection Mode == Off  }>=-";
-            // 
-            // setDetectionModeToTrainingToolStripMenuItem
-            // 
-            this.setDetectionModeToTrainingToolStripMenuItem.Name = "setDetectionModeToTrainingToolStripMenuItem";
-            this.setDetectionModeToTrainingToolStripMenuItem.Size = new System.Drawing.Size(315, 22);
-            this.setDetectionModeToTrainingToolStripMenuItem.Text = "Set Detection Mode to *Training*";
-            this.setDetectionModeToTrainingToolStripMenuItem.Click += new System.EventHandler(this.setDetectionModeToTrainingToolStripMenuItem_Click);
+            this.btnNext.Location = new System.Drawing.Point(67, 216);
+            this.btnNext.Name = "btnNext";
+            this.btnNext.Size = new System.Drawing.Size(14, 22);
+            this.btnNext.TabIndex = 10;
+            this.btnNext.Text = ">";
+            this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             // 
             // FrmPrincipal
             // 
@@ -307,21 +342,22 @@ namespace MultiFaceRec
             this.Resize += new System.EventHandler(this.FrmPrincipal_Resize);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBoxFrameGrabber)).EndInit();
-            this.contextMenuStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button BtnSaveFoundFace;
         private Emgu.CV.UI.ImageBox imageBoxFrameGrabber;
         private Emgu.CV.UI.ImageBox imageBox1;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox TxtUsername;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox groupBox2;
@@ -342,6 +378,9 @@ namespace MultiFaceRec
         private System.Windows.Forms.ToolStripMenuItem showTrainingInterfaceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem currentDectectionModeStatusToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setDetectionModeToTrainingToolStripMenuItem;
+        private System.Windows.Forms.Button btnNext;
+        private System.Windows.Forms.Button btnPrev;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 

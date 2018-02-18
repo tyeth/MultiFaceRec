@@ -100,3 +100,17 @@ C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\M
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.exe
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.pdb
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.csprojResolveAssemblyReference.cache
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MultiFaceRec.exe.config
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\DnsClient.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Bson.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Driver.Core.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Driver.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\System.Buffers.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\System.Runtime.InteropServices.RuntimeInformation.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\DnsClient.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Bson.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Driver.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\MongoDB.Driver.Core.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\System.Buffers.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Emgu.CV.DebuggerVisualizers.VS2017.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Microsoft.VisualStudio.DebuggerVisualizers.dll
