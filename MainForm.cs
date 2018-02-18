@@ -120,7 +120,7 @@ namespace MultiFaceRec
                     AssignIdOnInsert = true,
                     ReadPreference = ReadPreference.Primary,
                     ReadConcern = ReadConcern.Default,
-                    ReadEncoding = new UTF8Encoding(false,false)
+                    ReadEncoding = new UTF8Encoding(false, false)
                 });
         }
 
@@ -134,25 +134,26 @@ namespace MultiFaceRec
             Console.WriteLine($"Collection contains {cnt} records.");
 
             // trainingImages.Clear();
-            var list = collection.Find(x=>true).ToList();
+            var list = collection.Find(x => true).ToList();
             //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
             foreach (var doc in list)
             {
                 try
                 {
 
-                var ms = new MemoryStream();
-                ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
-                ms.Flush();
-                ms.Seek(0, SeekOrigin.Begin);
+                    var ms = new MemoryStream();
+                    ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
+                    ms.Flush();
+                    ms.Seek(0, SeekOrigin.Begin);
 
-                var bmp = new Bitmap(ms);
-                trainingImages.Add(new Image<Gray, byte>(bmp));
+                    var bmp = new Bitmap(ms);
+                    trainingImages.Add(new Image<Gray, byte>(bmp));
 
-                labels.Add(doc.Person);
+                    labels.Add(doc.Person);
                 }
-                catch(Exception e) {
-                    MessageBox.Show("Error with "+doc.Id + " " + e.Message +Environment.NewLine+  e.InnerException?.Message);
+                catch (Exception e)
+                {
+                    MessageBox.Show("Error with " + doc.Id + " " + e.Message + Environment.NewLine + e.InnerException?.Message);
                 }
             }
 
@@ -248,7 +249,7 @@ namespace MultiFaceRec
         {
             if (collection == null) InitialiseDb();
             var ms = new MemoryStream();
-            trainedFace.Bitmap.Save(ms,ImageFormat.Bmp);
+            trainedFace.Bitmap.Save(ms, ImageFormat.Bmp);
             await ms.FlushAsync();
             ms.Seek(0, SeekOrigin.Begin);
             await collection.InsertOneAsync(new FacialCroppedMatch()
@@ -402,6 +403,156 @@ namespace MultiFaceRec
         //
         //            return adressEditBox.Current.Name;
         //        }
+
+
+
+
+        //public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
+
+        //[DllImport("user32.Dll")]
+        //[return: MarshalAs(UnmanagedType.Bool)]
+        //public static extern bool EnumChildWindows(IntPtr parentHandle, Win32Callback callback, IntPtr lParam);
+
+        ///// <summary>
+        ///// Find a child window that matches a set of conditions specified as a Predicate that receives hWnd.  Returns IntPtr.Zero
+        ///// if the target window not found.  Typical search criteria would be some combination of window attributes such as
+        ///// ClassName, Title, etc., all of which can be obtained using API functions you will find on pinvoke.net
+        ///// </summary>
+        ///// <remarks>
+        /////     <para>Example: Find a window with specific title (use Regex.IsMatch for more sophisticated search)</para>
+        /////     <code lang="C#"><![CDATA[var foundHandle = Win32.FindWindow(IntPtr.Zero, ptr => Win32.GetWindowText(ptr) == "Dashboard");]]></code>
+        ///// </remarks>
+        ///// <param name="parentHandle">Handle to window at the start of the chain.  Passing IntPtr.Zero gives you the top level
+        ///// window for the current process.  To get windows for other processes, do something similar for the FindWindow
+        ///// API.</param>
+        ///// <param name="target">Predicate that takes an hWnd as an IntPtr parameter, and returns True if the window matches.  The
+        ///// first match is returned, and no further windows are scanned.</param>
+        ///// <returns> hWnd of the first found window, or IntPtr.Zero on failure </returns>
+        //public static IntPtr FindWindow(IntPtr parentHandle, Predicate<IntPtr> target)
+        //{
+        //    var result = IntPtr.Zero;
+        //    if (parentHandle == IntPtr.Zero)
+        //        parentHandle = Process.GetCurrentProcess().MainWindowHandle;
+        //    EnumChildWindows(parentHandle, (hwnd, param) => {
+        //        if (target(hwnd))
+        //        {
+        //            result = hwnd;
+        //            return false;
+        //        }
+        //        return true;
+        //    }, IntPtr.Zero);
+        //    return result;
+        //}
+
+
+        /// <summary>
+        /// return windows text
+        /// </summary>
+        /// <param name="hWnd"></param>
+        /// <param name="lpWindowText"></param>
+        /// <param name="nMaxCount"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll", EntryPoint = "GetWindowText",
+            ExactSpelling = false, CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpWindowText, int nMaxCount);
+
+        public static string GetWindowTextDirectly(IntPtr h, StringBuilder sb = null, int cnt = 1000)
+        {
+            if (sb == null) sb = new StringBuilder(1000);
+            GetWindowText(h, sb, cnt);
+            return sb.ToString();
+        }
+
+        const int SW_HIDE = 0;
+        const int SW_SHOWNORMAL = 1;
+        const int SW_NORMAL = 1;
+        const int SW_SHOWMINIMIZED = 2;
+        const int SW_SHOWMAXIMIZED = 3;
+        const int SW_MAXIMIZE = 3;
+        const int SW_SHOWNOACTIVATE = 4;
+        const int SW_SHOW = 5;
+        const int SW_MINIMIZE = 6;
+        const int SW_SHOWMINNOACTIVE = 7;
+        const int SW_SHOWNA = 8;
+        const int SW_RESTORE = 9;
+        const int SW_SHOWDEFAULT = 10;
+        const int SW_FORCEMINIMIZE = 11;
+        const int SW_MAX = 11;
+
+
+
+        public static void MinimizeOutlook(IntPtr hwnd)
+        {
+            var list = GetChildWindows(hwnd);
+            for (int i = 0; i < list.Count; i++)
+            {
+                var VARIABLE = list[i];
+                var t = GetWindowTextDirectly(VARIABLE);
+                Debug.WriteLine($"({VARIABLE.ToInt32()}){t}");
+                if (string.IsNullOrWhiteSpace(t)) continue;
+                ShowWindow(VARIABLE.ToInt32(), SW_MINIMIZE);
+            }
+
+            ShowWindow(hwnd.ToInt32(), SW_MINIMIZE);
+
+        }
+
+        [DllImport("User32")]
+        private static extern int ShowWindow(int hwnd, int nCmdShow);
+
+        [DllImport("user32")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool EnumChildWindows(IntPtr window, EnumWindowProc callback, IntPtr i);
+
+        /// <summary>
+        /// Returns a list of child windows
+        /// </summary>
+        /// <param name="parent">Parent of the windows to return</param>
+        /// <returns>List of child windows</returns>
+        public static List<IntPtr> GetChildWindows(IntPtr parent)
+        {
+            List<IntPtr> result = new List<IntPtr>();
+            GCHandle listHandle = GCHandle.Alloc(result);
+            try
+            {
+                EnumWindowProc childProc = new EnumWindowProc(EnumWindow);
+                EnumChildWindows(parent, childProc, GCHandle.ToIntPtr(listHandle));
+            }
+            finally
+            {
+                if (listHandle.IsAllocated)
+                    listHandle.Free();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Callback method to be used when enumerating windows.
+        /// </summary>
+        /// <param name="handle">Handle of the next window</param>
+        /// <param name="pointer">Pointer to a GCHandle that holds a reference to the list to fill</param>
+        /// <returns>True to continue the enumeration, false to bail</returns>
+        private static bool EnumWindow(IntPtr handle, IntPtr pointer)
+        {
+            GCHandle gch = GCHandle.FromIntPtr(pointer);
+            List<IntPtr> list = gch.Target as List<IntPtr>;
+            if (list == null)
+            {
+                throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
+            }
+            list.Add(handle);
+            //  You can modify this to check to see if you want to cancel the operation, then return a null here
+            return true;
+        }
+
+        /// <summary>
+        /// Delegate for the EnumChildWindows method
+        /// </summary>
+        /// <param name="hWnd">Window handle</param>
+        /// <param name="parameter">Caller-defined variable; we use it for a pointer to our list</param>
+        /// <returns>True to continue enumerating, false to bail.</returns>
+        public delegate bool EnumWindowProc(IntPtr hWnd, IntPtr parameter);
+
         /// <summary>
         /// /////////////////////////////////////////////
         /// </summary>
@@ -419,7 +570,7 @@ namespace MultiFaceRec
             var adressEditBox = edgeCommandsWindow.FindFirst(TreeScope.Children,
                 new PropertyCondition(AutomationElement.AutomationIdProperty, "addressEditBox"));
 
-            return ((TextPattern) adressEditBox.GetCurrentPattern(TextPattern.Pattern)).DocumentRange.GetText(
+            return ((TextPattern)adressEditBox.GetCurrentPattern(TextPattern.Pattern)).DocumentRange.GetText(
                 int.MaxValue);
         }
 
@@ -479,11 +630,12 @@ namespace MultiFaceRec
         {
             try
             {
-                txtCurrentPicture.Text = $"{(FacesCounter+1)}/{trainingImages.Count} {labels[FacesCounter]}";
+                txtCurrentPicture.Text = $"{(FacesCounter + 1)}/{trainingImages.Count} {labels[FacesCounter]}";
                 pictureBox1.Image = CurrentImage.Bitmap;
-                pictureBox1.SizeMode=PictureBoxSizeMode.StretchImage;
+                pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox1.Refresh();
-            }finally 
+            }
+            catch (Exception e)
             {
             }
         }
@@ -582,6 +734,7 @@ namespace MultiFaceRec
         /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
+
             var strOutput = GetRunningProcesses();
 
             this.runningApps.Text = strOutput;
@@ -609,6 +762,10 @@ namespace MultiFaceRec
                 {
                     switch (x.ToLowerInvariant())
                     {
+                        case "outlook":
+                            MinimizeOutlook(process.MainWindowHandle);
+                            break;
+
                         case "microsoftedgecp":
                         case "microsoftedge":
                         case "edge":

@@ -1,3 +1,190 @@
+﻿=======FROM STACKOVERFLOW=======
+https://blogs.msdn.microsoft.com/shawnfa/2005/05/17/receiving-session-lock-and-unlock-notifications/
+In comments is a further link for logon and logoff... which further links to this code https://web.archive.org/web/20090822053939/http://gemsres.com:80/story/jun05/105651/source.html
+S/O ARTICLE FOR TOP LINK BELOW:
+Receiving Session Lock and Unlock Notifications
+★★★★★★★★★★★★★★★
+avatar of shawnfaShawn Farkas - MSMay 17, 200516 
+0
+0
+Some programs, such as MSN Messenger, change their behavior when the current session is locked and unlocked.  Messenger, for instance, will change your status to Away while your machine is locked, and then back to Online when your machine is unlocked.
+
+
+In order to pull this off, you'll need Windows to notify your application when the locked status of the current session is changing.  On Windows XP and higher, you can get this notification via a WM_WTSSESSION_CHANGE message.  You notify Windows that you want to receive that message via a call to WTSRegisterSessionNotification  (which requires that you make a matching call to WTSUnRegisterSessionNotification when you no longer need notification).  Both of these APIs are declared in the WtsApi32.h header in the platform SDK.
+
+
+When the WM_WTSESSION_CHANGE message arrives, there is a status code in the wParam indicating what type of change is happening.  The two changes we care about are WTS_SESSION_LOCK and WTS_SESSION_UNLOCK to represent locking and unlocking the machine.
+
+
+All of the APIs involved are relatively simple, and creating P/Invoke signatures for them is easy.  Once that work is done, creating a simple base class that is capable of receiving lock and unlock notifications is very straightforward.
+
+
+
+using System;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+/// <summary>
+/// Base class for a form that wants to be notified of Windows
+/// session lock / unlock events
+/// </summary>
+public abstract class LockNotificationForm : Form
+{
+    // from wtsapi32.h
+    private const int NotifyForThisSession = 0;
+
+    // from winuser.h
+    private const int SessionChangeMessage = 0x02B1;
+    private const int SessionLockParam = 0x7;
+    private const int SessionUnlockParam = 0x8;
+
+    [DllImport("wtsapi32.dll")]
+    private static extern bool WTSRegisterSessionNotification(IntPtr hWnd, int dwFlags);
+
+    [DllImport("wtsapi32.dll")]
+    private static extern bool WTSUnRegisterSessionNotification(IntPtr hWnd);
+    
+    // flag to indicate if we've registered for notifications or not
+    private bool registered = false;
+    
+    /// <summary>
+    /// Is this form receiving lock / unlock notifications
+    /// </summary>
+    protected bool ReceivingLockNotifications
+    {
+        get { return registered; }
+    }
+            
+    /// <summary>
+    /// Unregister for event notifications
+    /// </summary>
+    protected override void Dispose(bool disposing)
+    {
+        if(registered)
+        {
+            WTSUnRegisterSessionNotification(Handle);
+            registered = false;
+        }
+        
+        base.Dispose(disposing);
+        return;
+    }
+    
+    /// <summary>
+    /// Register for event notifications
+    /// </summary>
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        // WtsRegisterSessionNotification requires Windows XP or higher
+        bool haveXp =   Environment.OSVersion.Platform == PlatformID.Win32NT &&
+                            (Environment.OSVersion.Version.Major > 5 || 
+                                (Environment.OSVersion.Version.Major == 5 &&
+                                 Environment.OSVersion.Version.Minor >= 1));
+
+        if(haveXp)
+            registered = WTSRegisterSessionNotification(Handle, NotifyForThisSession);
+
+        return;
+    }
+
+    /// <summary>
+    /// The windows session has been locked
+    /// </summary>
+    protected virtual void OnSessionLock()
+    {
+        return;
+    }
+
+    /// <summary>
+    /// The windows session has been unlocked
+    /// </summary>
+    protected virtual void OnSessionUnlock()
+    {
+        return;
+    }
+    
+    /// <summary>
+    /// Process windows messages
+    /// </summary>
+    protected override void WndProc(ref Message m)
+    {
+        // check for session change notifications
+        if(m.Msg == SessionChangeMessage)
+        {
+            if(m.WParam.ToInt32() == SessionLockParam)
+                OnSessionLock();
+            else if(m.WParam.ToInt32() == SessionUnlockParam)
+                OnSessionUnlock();
+        }
+
+        base.WndProc(ref m);
+        return;
+    }    
+}
+
+
+This class exposes three interesting protected members to its derived classes.  The ReceivingLockNotifications property is a flag that indicates that the form is receiving lock and unlock messages.  The most likely reasons this would be set to false is if the form is not running on Windows XP or higher, or the form is disposed.  OnSessionLock and OnSessionUnlock are methods called when the user locks and unlocks the current Windows session.
+
+
+Control flow through the form is pretty basic.  In the OnHandleCreated method, we check to see if the user is running on XP or higher, and if so, call out to WTSRegisterSessionNotification, requesting notifications only for the current session.  This call needs to be done in OnHandleCreated so that there is an HWND associated with the form, since that HWND is required to register for notifications.
+
+
+The WndProc is overridden so that we can check to see if we've gotten any WM_WTSESSION_CHANGE messages.  If we have, and their wParam is either lock or unlock, we call the appropriate virtual function.  The rest of the messages just get processed by the default WndProc implementation.
+
+
+Finally, in the form's Dispose method, we check to see if we ever registered for notifications, and if so unregister.
+
+
+Using this class is very easy.  Here's a tiny sample that just keeps track of the lock and unlock times in a text box:
+
+
+
+using System;
+using System.Windows.Forms;
+
+public class NotifyForm : LockNotificationForm
+{
+    private TextBox textBox = new TextBox();
+    
+    public static void Main()
+    {
+        using(NotifyForm notifyForm = new NotifyForm())
+            Application.Run(notifyForm);
+    }
+
+    public NotifyForm()
+    {
+        textBox.Top = ClientRectangle.Top;
+        textBox.Left = ClientRectangle.Left;
+        textBox.Width = ClientRectangle.Width;
+        textBox.Height = ClientRectangle.Height;
+        textBox.Multiline = true;
+
+        Controls.Add(textBox);
+    }
+    
+    protected override void OnSessionLock()
+    {
+        textBox.Text = textBox.Text + "Locked at " + DateTime.Now + Environment.NewLine;
+    }
+
+    protected override void OnSessionUnlock()
+    {
+        textBox.Text = textBox.Text + "Unlocked at " + DateTime.Now + Environment.NewLine;
+    }
+}
+
+
+
+
+
+
+
+
+
 ================FROM STACKOVERFLOW==============
 How to stop Mongodb .NET driver throwing System.FormatException?
 Ask Question
@@ -11,7 +198,7 @@ An error occurred while deserializing the description property of class KerbTool
 
 A .NET web API app I wrote to monitor the status of our MongoDB / Node.js based system started throwing a DecoderFallbackException.
 
-Here�s a stack trace
+Here’s a stack trace
 
 System.FormatException occurred
   HResult=-2146233033
@@ -82,8 +269,8 @@ answered Oct 14 '15 at 21:14
 Stefano Castriotta
 1,4051920
 1
-you might need to construct the settings and pass them into the ctor. I think client.Settings is readonly at this point. � Craig Wilson Oct 14 '15 at 21:46
+you might need to construct the settings and pass them into the ctor. I think client.Settings is readonly at this point. – Craig Wilson Oct 14 '15 at 21:46
 1
-Thanks for the info. I was wondering why the encoding object was passed down the mongo stack. Yes, the changing the settings throws: A first chance exception of type 'System.InvalidOperationException' MongoClientSettings is frozen. I'll try creating the settings first. � Paul Garner Oct 14 '15 at 22:15
-Solved: I'll edit the answer with details. Thanks Stefano & @craig � Paul Garner Oct 14 '15 at 22:32 
+Thanks for the info. I was wondering why the encoding object was passed down the mongo stack. Yes, the changing the settings throws: A first chance exception of type 'System.InvalidOperationException' MongoClientSettings is frozen. I'll try creating the settings first. – Paul Garner Oct 14 '15 at 22:15
+Solved: I'll edit the answer with details. Thanks Stefano & @craig – Paul Garner Oct 14 '15 at 22:32 
 add a comment
