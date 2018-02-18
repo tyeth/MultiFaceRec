@@ -171,7 +171,7 @@ namespace MultiFaceRec
         {
             var ret = new List<KeyValuePair<string, string>>();
             var filterBuilder = Builders<KeyValuePair<string, string>>.Filter;
-            var filterarr = new List<FilterDefinition<KeyValuePair<string,string>>>(checkedListBox1.Items.Count);
+            var filterarr = new List<FilterDefinition<KeyValuePair<string,string>>>( );
             foreach (var item in keysEnumerable)
             {
                 filterarr.Add(filterBuilder.Eq<string>("k", item.ToString()));

@@ -1,32 +1,19 @@
-﻿//Multiple face detection and recognition in real time
-//Using EmguCV cross platform .Net wrapper to the Intel OpenCV image processing library for C#.Net
-//Writed by Sergio Andrés Guitérrez Rojas
-//"Serg3ant" for the delveloper comunity
-// Sergiogut1805@hotmail.com
-//Regards from Bucaramanga-Colombia ;)
-//
-//Also Greetings from Bristol, UK.
-//tyethgundry@gmail.com
-
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Windows.Forms;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using Emgu.CV.CvEnum;
-using System.IO;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
-using MinimizeAll;
-using MongoDB.Bson;
+using System.Windows.Forms;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -42,48 +29,85 @@ namespace MultiFaceRec
 
     public partial class FrmPrincipal : Form
     {
-        private DetectionModeStatusTypes _detectionModeStatus;
+        /// <summary>
+        ///     Delegate for the EnumChildWindows method
+        /// </summary>
+        /// <param name="hWnd">Window handle</param>
+        /// <param name="parameter">Caller-defined variable; we use it for a pointer to our list</param>
+        /// <returns>True to continue enumerating, false to bail.</returns>
+        public delegate bool EnumWindowProc(IntPtr hWnd, IntPtr parameter);
 
-        // ReSharper disable once InconsistentNaming
-        public DetectionModeStatusTypes STATUS
-        {
-            get => _detectionModeStatus;
-            set
-            {
-                _detectionModeStatus = value;
-                UpdateMenu(value);
-            }
-        }
-
-        private void UpdateMenu(DetectionModeStatusTypes value)
-        {
-            currentDectectionModeStatusToolStripMenuItem.Text = currentDectectionModeStatusToolStripMenuItem.Tag
-                .ToString()
-                .Replace("STATUS",
-                    STATUS == DetectionModeStatusTypes.OFF ? "OFF" :
-                    STATUS == DetectionModeStatusTypes.ON ? "ON" : "Training");
-        }
+        private const int SW_HIDE = 0;
+        private const int SW_SHOWNORMAL = 1;
+        private const int SW_NORMAL = 1;
+        private const int SW_SHOWMINIMIZED = 2;
+        private const int SW_SHOWMAXIMIZED = 3;
+        private const int SW_MAXIMIZE = 3;
+        private const int SW_SHOWNOACTIVATE = 4;
+        private const int SW_SHOW = 5;
+        private const int SW_MINIMIZE = 6;
+        private const int SW_SHOWMINNOACTIVE = 7;
+        private const int SW_SHOWNA = 8;
+        private const int SW_RESTORE = 9;
+        private const int SW_SHOWDEFAULT = 10;
+        private const int SW_FORCEMINIMIZE = 11;
+        private const int SW_MAX = 11;
 
         //Declararation of all variables, vectors and haarcascades
-        private Image<Bgr, Byte> _currentFrame;
-        private Capture _grabber;
+        private Image<Bgr, byte> _currentFrame;
+        private DetectionModeStatusTypes _detectionModeStatus;
 
-        private HaarCascade _face;
+        private readonly HaarCascade _face;
+
+        private frmSettings _frm;
+        private Capture _grabber;
+        private IMongoCollection<FacialCroppedMatch> collection;
+        private int ContTrain, NumLabels, t;
+        private IMongoDatabase db;
+        private MongoClient dbClient;
+
+
+        private int FacesCounter;
 
         //HaarCascade _eye;
-        MCvFont font = new MCvFont(FONT.CV_FONT_HERSHEY_TRIPLEX, 0.5d, 0.5d);
-        Image<Gray, byte> result, TrainedFace = null;
-        Image<Gray, byte> gray = null;
-        List<Image<Gray, byte>> trainingImages = new List<Image<Gray, byte>>();
-        List<string> labels = new List<string>();
-        List<string> NamePersons = new List<string>();
-        int ContTrain, NumLabels, t;
-        string name, names = null;
-        private string username = "Tyeth";
+        private MCvFont font = new MCvFont(FONT.CV_FONT_HERSHEY_TRIPLEX, 0.5d, 0.5d);
         private EventHandler frmEventHandler;
-        private MongoClient dbClient;
-        private IMongoDatabase db;
-        private IMongoCollection<FacialCroppedMatch> collection;
+        private Image<Gray, byte> gray;
+        private readonly List<string> labels = new List<string>();
+        public string MongoDb = "faces";
+        public string MongoScannedCollection = "scanned";
+        public string MongoSettingsCollection = "settings";
+        public string MongoTrustedCollection = "trustedGrey";
+
+        public string MongoUrl = "mongodb://localhost:27017";
+        public string MongoVillainsCollection = "villains";
+        private string name, names;
+        private readonly List<string> NamePersons = new List<string>();
+
+        public List<string> privacyList = new List<string>
+        {
+            "outlook",
+            "microsoftedgecp",
+            "microsoftedge",
+            "edge",
+            "firefox",
+            "chrome",
+            "winword",
+            "msteams",
+            "teams",
+            "skype",
+            "hangouts",
+            "thunderbird",
+            "eudora",
+            "mail",
+            "hxoutlook"
+        };
+
+        private Image<Gray, byte> result, TrainedFace;
+
+        public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
+        private readonly List<Image<Gray, byte>> trainingImages = new List<Image<Gray, byte>>();
+        private string username = "Tyeth";
 
         public FrmPrincipal()
         {
@@ -100,11 +124,10 @@ namespace MultiFaceRec
                 MessageBox.Show(
                     $"Failed to load settings collection ({MongoSettingsCollection}) from {MongoDb} database on mongodb server({MongoUrl}).",
                     "Trained faces load", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
             }
+
             try
             {
-
                 LoadTrainedFacesForStartup();
             }
             catch (Exception e)
@@ -121,72 +144,148 @@ namespace MultiFaceRec
             UpdateCurrentBrowsedImage();
         }
 
-        public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
+        // ReSharper disable once InconsistentNaming
+        public DetectionModeStatusTypes STATUS
+        {
+            get => _detectionModeStatus;
+            set
+            {
+                _detectionModeStatus = value;
+                UpdateMenu(value);
+            }
+        }
+
+        public Image<Gray, byte> CurrentImage => trainingImages[FacesCounter];
+
+        private frmSettings myFrmSettings
+        {
+            get
+            {
+                if (_frm == null || _frm.IsDisposed)
+                    _frm = new frmSettings();
+
+                return _frm;
+            }
+            set => _frm = value;
+        }
+
+        private void UpdateMenu(DetectionModeStatusTypes value)
+        {
+            currentDectectionModeStatusToolStripMenuItem.Text = currentDectectionModeStatusToolStripMenuItem.Tag
+                .ToString()
+                .Replace("STATUS",
+                    STATUS == DetectionModeStatusTypes.OFF ? "OFF" :
+                    STATUS == DetectionModeStatusTypes.ON ? "ON" : "Training");
+        }
+
         public void InitialiseDb()
         {
             dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
-            var dbSettingsNoId = new MongoCollectionSettings()
+            var dbSettingsNoId = new MongoCollectionSettings
             {
                 AssignIdOnInsert = false,
-                WriteEncoding = new UTF8Encoding(false,false),
+                WriteEncoding = new UTF8Encoding(false, false),
                 ReadPreference = ReadPreference.Primary,
                 ReadConcern = ReadConcern.Default,
                 ReadEncoding = new UTF8Encoding(false, false)
             };
-            var dbSettingsWithId = new MongoCollectionSettings()
+            var dbSettingsWithId = new MongoCollectionSettings
             {
                 AssignIdOnInsert = true,
-                WriteEncoding = new UTF8Encoding(false,false),
+                WriteEncoding = new UTF8Encoding(false, false),
                 ReadPreference = ReadPreference.Primary,
                 ReadConcern = ReadConcern.Default,
                 ReadEncoding = new UTF8Encoding(false, false)
             };
             db = dbClient.GetDatabase(MongoDb);
-            settingsCollection = db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettingsNoId);
+            settingsCollection =
+                db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettingsNoId);
             collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettingsWithId
-               );
+            );
         }
 
         private void LoadSettings()
         {
-            if (settingsCollection == null) { InitialiseDb(); }
+            if (settingsCollection == null) InitialiseDb();
 
             if (settingsCollection.Count(x => true) == 0)
-            {
                 if (File.Exists(Application.ExecutablePath + "\\Settings.ini"))
-                {
                     LoadSettingsFromFile(Application.ExecutablePath + "\\Settings.ini");
-                }
                 else
-                {
                     throw new MongoException("No settings records/documents found in collection.");
-                }
-            }
+
             privacyList.Clear();
-           // var list = settingsCollection.FindSync(x => x.Key == "PrivacyList").ToList();
+
+            var cleanSettingsCollection = GetSettingsFromDbCollection(new string[]
+            {
+                "PrivacyList"
+            });
+            privacyList.AddRange(cleanSettingsCollection.Select(x => x.Value));
 
 
-            var filterBuilder = Builders<KeyValuePair<string,string>>.Filter;
-            var filter = filterBuilder.Eq<string>("k", "PrivacyList");// & filterBuilder.Exists("isTransformed", false);
+            cleanSettingsCollection = GetSettingsFromDbCollection(new string[]
+            {
+                "MongoDbUrl",
+                "MongoDbName" ,
+                "Settings",
+                "Trusted",
+                "Scanned",
+                "Villains"
+            });
+            UpdateAndFlagBoolIfChanged(out bool changed, ref MongoUrl,
+                cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value);
+           UpdateAndFlagBoolIfChanged(out  changed, ref MongoUrl , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value );
+           UpdateAndFlagBoolIfChanged(out  changed, ref MongoDb , cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value  );
+           UpdateAndFlagBoolIfChanged(out  changed, ref MongoSettingsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value );
+           UpdateAndFlagBoolIfChanged(out  changed, ref MongoTrustedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value );
+           UpdateAndFlagBoolIfChanged(out  changed, ref MongoScannedCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value );
+            UpdateAndFlagBoolIfChanged(out  changed, ref MongoVillainsCollection , cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value );
+            if (changed)
+            {
+                InitialiseDb();
+                LoadSettings();
+            }
+        }
+
+        private void UpdateAndFlagBoolIfChanged(out bool b, ref string str, string value, bool acceptNull = false, bool acceptWhiteSpace = false)
+        {
+            if (str != value && value != null)
+            {
+                str = value;
+                b = true;
+            }
+            else
+            {
+                b = false;
+            }
+        }
+
+        private IList<KeyValuePair<string, string>> GetSettingsFromDbCollection(IEnumerable<string> keysEnumerable)
+        {
+            var ret = new List<KeyValuePair<string, string>>();
+            var filterBuilder = Builders<KeyValuePair<string, string>>.Filter;
+            var filterarr = new List<FilterDefinition<KeyValuePair<string, string>>>();
+            foreach (var item in keysEnumerable)
+            {
+                filterarr.Add(filterBuilder.Eq<string>("k", item.ToString()));
+            }
+
+            var filter = filterBuilder.Or(filterarr);
+
 
             var projection = Builders<KeyValuePair<string, string>>.Projection
                     .Exclude("_id")
-                .Include("k")
-                .Include("v")
-                //.Include("client")
-                //.Include("url")
-                //.Include("fileName")
-                //.Include("context")
+                    .Include("k")
+                    .Include("v")
+
                 ;
 
-            var list= settingsCollection.Find (  filter).Project(  projection  ).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
-            
-                list.ForEach(x =>
-                {
-                    var xDoc = BsonSerializer.Deserialize<KeyValuePair<string,string>>(x);
-                    privacyList.Add(xDoc.Value);
-                });
+            var list = settingsCollection.Find(filter).Project(projection).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
+
+            ret = list.Select(x => BsonSerializer.Deserialize<KeyValuePair<string, string>>(x)).ToList();
+            return ret;
         }
+
 
         private void LoadSettingsFromFile(string filePath)
         {
@@ -198,7 +297,7 @@ namespace MultiFaceRec
             if (collection == null) InitialiseDb();
             //if (collection.Count(x => true) == 0) throw new DataException("The Database has no records or the connection is broken.");
             // labels.Clear();
-            long cnt = collection.Count(x => true);
+            var cnt = collection.Count(x => true);
             cnt++;
             Console.WriteLine($"Collection contains {cnt} records.");
 
@@ -206,10 +305,8 @@ namespace MultiFaceRec
             var list = collection.Find(x => true).ToList();
             //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
             foreach (var doc in list)
-            {
                 try
                 {
-
                     var ms = new MemoryStream();
                     ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
                     ms.Flush();
@@ -222,9 +319,9 @@ namespace MultiFaceRec
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show("Error with " + doc.Id + " " + e.Message + Environment.NewLine + e.InnerException?.Message);
+                    MessageBox.Show("Error with " + doc.Id + " " + e.Message + Environment.NewLine +
+                                    e.InnerException?.Message);
                 }
-            }
 
             if (trainingImages.Count == 0)
                 throw new DataException("The Database has no records or the connection is broken.");
@@ -259,13 +356,13 @@ namespace MultiFaceRec
             _grabber = new Capture();
             _grabber.QueryFrame();
             //Initialize the FrameGraber event
-            frmEventHandler = new EventHandler(FrameGrabber);
+            frmEventHandler = FrameGrabber;
             Application.Idle += frmEventHandler;
             button1.Enabled = false;
         }
 
 
-        private void BtnSaveFoundFace_Click(object sender, System.EventArgs e)
+        private void BtnSaveFoundFace_Click(object sender, EventArgs e)
         {
             try
             {
@@ -273,18 +370,18 @@ namespace MultiFaceRec
                 ContTrain = ContTrain + 1;
 
                 //Get a gray frame from capture device
-                gray = _grabber.QueryGrayFrame().Resize(320, 240, Emgu.CV.CvEnum.INTER.CV_INTER_CUBIC);
+                gray = _grabber.QueryGrayFrame().Resize(320, 240, INTER.CV_INTER_CUBIC);
 
                 //Face Detector
-                MCvAvgComp[][] facesDetected = gray.DetectHaarCascade(
+                var facesDetected = gray.DetectHaarCascade(
                     _face,
                     1.2,
                     10,
-                    Emgu.CV.CvEnum.HAAR_DETECTION_TYPE.DO_CANNY_PRUNING,
+                    HAAR_DETECTION_TYPE.DO_CANNY_PRUNING,
                     new Size(20, 20));
 
                 //Action for each element detected
-                foreach (MCvAvgComp f in facesDetected[0])
+                foreach (var f in facesDetected[0])
                 {
                     TrainedFace = _currentFrame.Copy(f.rect).Convert<Gray, byte>();
                     break;
@@ -292,7 +389,7 @@ namespace MultiFaceRec
 
                 //resize face detected image for force to compare the same size with the 
                 //test image with cubic interpolation type method
-                TrainedFace = result.Resize(100, 100, Emgu.CV.CvEnum.INTER.CV_INTER_CUBIC);
+                TrainedFace = result.Resize(100, 100, INTER.CV_INTER_CUBIC);
                 trainingImages.Add(TrainedFace);
                 labels.Add(TxtUsername.Text);
 
@@ -310,8 +407,8 @@ namespace MultiFaceRec
                 MessageBox.Show("Enable the face detection first", "Training Fail", MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
             }
-            UpdateCurrentBrowsedImage();
 
+            UpdateCurrentBrowsedImage();
         }
 
         private async void PersistNewFace(Image<Gray, byte> trainedFace, string text)
@@ -321,10 +418,10 @@ namespace MultiFaceRec
             trainedFace.Bitmap.Save(ms, ImageFormat.Bmp);
             await ms.FlushAsync();
             ms.Seek(0, SeekOrigin.Begin);
-            await collection.InsertOneAsync(new FacialCroppedMatch()
+            await collection.InsertOneAsync(new FacialCroppedMatch
             {
                 ImageBytes = ms.ToArray(),
-                Name = Application.StartupPath + "/TrainedFaces/face" + (trainingImages.Count) + ".bmp",
+                Name = Application.StartupPath + "/TrainedFaces/face" + trainingImages.Count + ".bmp",
                 Person = text
             });
             ////Write the number of triained faces in a file text for further load
@@ -340,7 +437,7 @@ namespace MultiFaceRec
             //}
         }
 
-        void FrameGrabber(object sender, EventArgs e)
+        private void FrameGrabber(object sender, EventArgs e)
         {
             label3.Text = "0";
             //label4.Text = "";
@@ -348,25 +445,25 @@ namespace MultiFaceRec
 
 
             //Get the current frame form capture device
-            _currentFrame = _grabber.QueryFrame().Resize(320, 240, Emgu.CV.CvEnum.INTER.CV_INTER_CUBIC);
+            _currentFrame = _grabber.QueryFrame().Resize(320, 240, INTER.CV_INTER_CUBIC);
 
             //Convert it to Grayscale
-            gray = _currentFrame.Convert<Gray, Byte>();
+            gray = _currentFrame.Convert<Gray, byte>();
 
             //Face Detector
-            MCvAvgComp[][] facesDetected = gray.DetectHaarCascade(
+            var facesDetected = gray.DetectHaarCascade(
                 _face,
                 1.2,
                 10,
-                Emgu.CV.CvEnum.HAAR_DETECTION_TYPE.DO_CANNY_PRUNING,
+                HAAR_DETECTION_TYPE.DO_CANNY_PRUNING,
                 new Size(20, 20));
 
             //Action for each element detected
-            foreach (MCvAvgComp f in facesDetected[0])
+            foreach (var f in facesDetected[0])
             {
                 t = t + 1;
                 result = _currentFrame.Copy(f.rect).Convert<Gray, byte>()
-                    .Resize(100, 100, Emgu.CV.CvEnum.INTER.CV_INTER_CUBIC);
+                    .Resize(100, 100, INTER.CV_INTER_CUBIC);
                 //draw the face detected in the 0th (gray) channel with blue color
                 _currentFrame.Draw(f.rect, new Bgr(Color.Red), 2);
 
@@ -374,10 +471,10 @@ namespace MultiFaceRec
                 if (trainingImages.ToArray().Length != 0)
                 {
                     //TermCriteria for face recognition with numbers of trained images like maxIteration
-                    MCvTermCriteria termCrit = new MCvTermCriteria(ContTrain, 0.001);
+                    var termCrit = new MCvTermCriteria(ContTrain, 0.001);
 
                     //Eigen face recognizer
-                    EigenObjectRecognizer recognizer = new EigenObjectRecognizer(
+                    var recognizer = new EigenObjectRecognizer(
                         trainingImages.ToArray(),
                         labels.ToArray(),
                         3000,
@@ -421,20 +518,15 @@ namespace MultiFaceRec
             t = 0;
             var count = 0;
             //Names concatenation of persons recognized
-            for (int nnn = 0; nnn < facesDetected[0].Length; nnn++)
+            for (var nnn = 0; nnn < facesDetected[0].Length; nnn++)
             {
                 names = names + NamePersons[nnn] + ", ";
                 count++;
             }
 
             if (count > 1)
-            {
                 RegisterPryingEyes();
-            }
-            else if ((count == 1 && names.Replace(", ", "") != TxtUsername.Text))
-            {
-                RegisterUnrecognisedUser();
-            }
+            else if (count == 1 && names.Replace(", ", "") != TxtUsername.Text) RegisterUnrecognisedUser();
 
 
             {
@@ -472,8 +564,6 @@ namespace MultiFaceRec
         //
         //            return adressEditBox.Current.Name;
         //        }
-
-
 
 
         //public delegate bool Win32Callback(IntPtr hwnd, IntPtr lParam);
@@ -515,7 +605,7 @@ namespace MultiFaceRec
 
 
         /// <summary>
-        /// return windows text
+        ///     return windows text
         /// </summary>
         /// <param name="hWnd"></param>
         /// <param name="lpWindowText"></param>
@@ -532,28 +622,11 @@ namespace MultiFaceRec
             return sb.ToString();
         }
 
-        const int SW_HIDE = 0;
-        const int SW_SHOWNORMAL = 1;
-        const int SW_NORMAL = 1;
-        const int SW_SHOWMINIMIZED = 2;
-        const int SW_SHOWMAXIMIZED = 3;
-        const int SW_MAXIMIZE = 3;
-        const int SW_SHOWNOACTIVATE = 4;
-        const int SW_SHOW = 5;
-        const int SW_MINIMIZE = 6;
-        const int SW_SHOWMINNOACTIVE = 7;
-        const int SW_SHOWNA = 8;
-        const int SW_RESTORE = 9;
-        const int SW_SHOWDEFAULT = 10;
-        const int SW_FORCEMINIMIZE = 11;
-        const int SW_MAX = 11;
-
-
 
         public static void MinimizeOutlook(IntPtr hwnd)
         {
             var list = GetChildWindows(hwnd);
-            for (int i = 0; i < list.Count; i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 var VARIABLE = list[i];
                 var t = GetWindowTextDirectly(VARIABLE);
@@ -563,7 +636,6 @@ namespace MultiFaceRec
             }
 
             ShowWindow(hwnd.ToInt32(), SW_MINIMIZE);
-
         }
 
         [DllImport("User32")]
@@ -574,17 +646,17 @@ namespace MultiFaceRec
         public static extern bool EnumChildWindows(IntPtr window, EnumWindowProc callback, IntPtr i);
 
         /// <summary>
-        /// Returns a list of child windows
+        ///     Returns a list of child windows
         /// </summary>
         /// <param name="parent">Parent of the windows to return</param>
         /// <returns>List of child windows</returns>
         public static List<IntPtr> GetChildWindows(IntPtr parent)
         {
-            List<IntPtr> result = new List<IntPtr>();
-            GCHandle listHandle = GCHandle.Alloc(result);
+            var result = new List<IntPtr>();
+            var listHandle = GCHandle.Alloc(result);
             try
             {
-                EnumWindowProc childProc = new EnumWindowProc(EnumWindow);
+                var childProc = new EnumWindowProc(EnumWindow);
                 EnumChildWindows(parent, childProc, GCHandle.ToIntPtr(listHandle));
             }
             finally
@@ -592,38 +664,29 @@ namespace MultiFaceRec
                 if (listHandle.IsAllocated)
                     listHandle.Free();
             }
+
             return result;
         }
 
         /// <summary>
-        /// Callback method to be used when enumerating windows.
+        ///     Callback method to be used when enumerating windows.
         /// </summary>
         /// <param name="handle">Handle of the next window</param>
         /// <param name="pointer">Pointer to a GCHandle that holds a reference to the list to fill</param>
         /// <returns>True to continue the enumeration, false to bail</returns>
         private static bool EnumWindow(IntPtr handle, IntPtr pointer)
         {
-            GCHandle gch = GCHandle.FromIntPtr(pointer);
-            List<IntPtr> list = gch.Target as List<IntPtr>;
-            if (list == null)
-            {
-                throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
-            }
+            var gch = GCHandle.FromIntPtr(pointer);
+            var list = gch.Target as List<IntPtr>;
+            if (list == null) throw new InvalidCastException("GCHandle Target could not be cast as List<IntPtr>");
+
             list.Add(handle);
             //  You can modify this to check to see if you want to cancel the operation, then return a null here
             return true;
         }
 
         /// <summary>
-        /// Delegate for the EnumChildWindows method
-        /// </summary>
-        /// <param name="hWnd">Window handle</param>
-        /// <param name="parameter">Caller-defined variable; we use it for a pointer to our list</param>
-        /// <returns>True to continue enumerating, false to bail.</returns>
-        public delegate bool EnumWindowProc(IntPtr hWnd, IntPtr parameter);
-
-        /// <summary>
-        /// /////////////////////////////////////////////
+        ///     /////////////////////////////////////////////
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -645,7 +708,7 @@ namespace MultiFaceRec
 
         private void FrmPrincipal_Resize(object sender, EventArgs e)
         {
-            if (this.WindowState == FormWindowState.Minimized)
+            if (WindowState == FormWindowState.Minimized)
             {
                 Hide();
                 notifyIcon.Visible = true;
@@ -673,14 +736,6 @@ namespace MultiFaceRec
             Debug.Write("********************************************CLOSED");
         }
 
-
-        private int FacesCounter = 0;
-
-        public Image<Gray, byte> CurrentImage
-        {
-            get { return trainingImages[FacesCounter]; }
-        }
-
         public void GetNextPhoto()
         {
             FacesCounter--;
@@ -699,7 +754,7 @@ namespace MultiFaceRec
         {
             try
             {
-                txtCurrentPicture.Text = $"{(FacesCounter + 1)}/{trainingImages.Count} {labels[FacesCounter]}";
+                txtCurrentPicture.Text = $"{FacesCounter + 1}/{trainingImages.Count} {labels[FacesCounter]}";
                 pictureBox1.Image = CurrentImage.Bitmap;
                 pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox1.Refresh();
@@ -711,7 +766,7 @@ namespace MultiFaceRec
 
         private void RegisterUnrecognisedUser()
         {
-            int time = 2000;
+            var time = 2000;
             try
             {
                 if (STATUS == DetectionModeStatusTypes.ON)
@@ -723,7 +778,7 @@ namespace MultiFaceRec
                 }
                 else if (STATUS == DetectionModeStatusTypes.TRAINING)
                 {
-                    BtnSaveFoundFace_Click(new { }, new EventArgs { });
+                    BtnSaveFoundFace_Click(new { }, new EventArgs());
 
                     time = 100;
                 }
@@ -793,27 +848,6 @@ namespace MultiFaceRec
             return adressEditBox.Current.Name;
         }
 
-        private frmSettings _frm;
-
-        private frmSettings myFrmSettings
-        {
-            get
-            {
-                if(_frm==null || _frm.IsDisposed)
-                    _frm = new frmSettings();
-                    
-                return _frm;
-            }
-            set { _frm = value; }
-        }
-
-        public string MongoUrl = "mongodb://localhost:27017";
-        public string MongoDb = "faces";
-        public string MongoSettingsCollection="settings";
-        public string MongoTrustedCollection ="trustedGrey";
-        public string MongoScannedCollection ="scanned";
-        public string MongoVillainsCollection = "villains";
-
         private void btnSettings_Click(object sender, EventArgs e)
         {
             var f = myFrmSettings;
@@ -825,42 +859,22 @@ namespace MultiFaceRec
         public static extern IntPtr GetDesktopWindow();
 
         /// <summary>
-        /// //////////////////
+        ///     //////////////////
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
-
             var strOutput = GetRunningProcesses();
 
-            this.runningApps.Text = strOutput;
+            runningApps.Text = strOutput;
             //Process.Start("Donate.html");
         }
 
-        public  List<string> privacyList = new List<string>()
-        {
-            "outlook",
-            "microsoftedgecp" ,
-            "microsoftedge",
-            "edge",
-            "firefox",
-            "chrome",
-            "winword",
-            "msteams",
-            "teams",
-            "skype",
-            "hangouts",
-            "thunderbird","eudora",
-            "mail",
-            "hxoutlook"
-        };
-
-        private  string GetRunningProcesses()
+        private string GetRunningProcesses()
         {
             const string PROCS = "Running Processes...";
             var sb = new StringBuilder(PROCS);
-
 
 
             // if(Process.GetProcesses().Select(x => x).Any(process => privacyList.Contains(process.ProcessName) )) MinimizeAll.Minimizer.MinimizeAll();
@@ -868,16 +882,11 @@ namespace MultiFaceRec
             {
                 var x = process.ProcessName;
                 if (sb.Length != PROCS.Length)
-                {
                     sb.Append(",\r\n " + x);
-                }
                 else
-                {
                     sb.Append("\r\n " + x);
-                }
 
                 if (process.MainWindowHandle != IntPtr.Zero)
-                {
                     switch (x.ToLowerInvariant())
                     {
                         case "outlook":
@@ -887,18 +896,18 @@ namespace MultiFaceRec
                         case "microsoftedgecp":
                         case "microsoftedge":
                         case "edge":
-                            AutomationElement main = AutomationElement.FromHandle(GetDesktopWindow());
+                            var main = AutomationElement.FromHandle(GetDesktopWindow());
                             foreach (AutomationElement child in main.FindAll(TreeScope.Children,
-                                PropertyCondition.TrueCondition))
+                                Condition.TrueCondition))
                             {
-                                AutomationElement window = GetEdgeCommandsWindow(child);
+                                var window = GetEdgeCommandsWindow(child);
                                 if (window == null) // not edge
                                     continue;
 
                                 try
                                 {
-                                    string url = GetEdgeUrl(window);
-                                    string str = GetEdgeTitle(window);
+                                    var url = GetEdgeUrl(window);
+                                    var str = GetEdgeTitle(window);
                                     sb.Append("\r\nTab: '" + str + "' (" + url + ")");
                                 }
                                 catch
@@ -934,14 +943,12 @@ namespace MultiFaceRec
                         //
                         //                            break;
                         case "firefox":
-                            AutomationElement rootElement = AutomationElement.FromHandle(process.MainWindowHandle);
+                            var rootElement = AutomationElement.FromHandle(process.MainWindowHandle);
                             Condition condDocAll = new PropertyCondition(AutomationElement.ControlTypeProperty,
                                 ControlType.Document);
                             foreach (AutomationElement docElement in rootElement.FindAll(TreeScope.Descendants,
                                 condDocAll))
-                            {
-                                foreach (AutomationPattern pattern in docElement.GetSupportedPatterns())
-                                {
+                                foreach (var pattern in docElement.GetSupportedPatterns())
                                     if (docElement.GetCurrentPattern(pattern) is ValuePattern)
                                         sb.Append(Environment.NewLine + "Tab '" +
                                                   docElement.Current.Name
@@ -950,8 +957,6 @@ namespace MultiFaceRec
                                                   (docElement.GetCurrentPattern(pattern) as ValuePattern).Current.Value
                                                   .ToString() + ")"
                                         );
-                                }
-                            }
 
                             break;
                         case "chrome":
@@ -963,26 +968,23 @@ namespace MultiFaceRec
                             //                    for (int i = 0; i < tabs.Count; i++)
                             //                    {
                             //                        var tabitem = tabs[i];
-                            AutomationElement root = AutomationElement.FromHandle(process.MainWindowHandle);
+                            var root = AutomationElement.FromHandle(process.MainWindowHandle);
                             Condition condNewTab = new PropertyCondition(AutomationElement.NameProperty, "New Tab");
-                            AutomationElement elmNewTab = root.FindFirst(TreeScope.Descendants, condNewTab);
+                            var elmNewTab = root.FindFirst(TreeScope.Descendants, condNewTab);
                             // get the tabstrip by getting the parent of the 'new tab' button 
-                            TreeWalker treewalker = TreeWalker.ControlViewWalker;
-                            AutomationElement elmTabStrip = treewalker.GetParent(elmNewTab);
+                            var treewalker = TreeWalker.ControlViewWalker;
+                            var elmTabStrip = treewalker.GetParent(elmNewTab);
                             // loop through all the tabs and get the names which is the page title 
                             Condition condTabItem = new PropertyCondition(AutomationElement.ControlTypeProperty,
                                 ControlType.TabItem);
                             foreach (AutomationElement tabitem in elmTabStrip.FindAll(TreeScope.Children, condTabItem))
-                            {
                                 sb.Append("\r\nTab: '" + tabitem.Current.Name + "'");
-                            }
 
 
                             break;
                         default:
                             break;
                     }
-                }
             });
             var strOutput = sb.ToString();
             return strOutput;
