@@ -296,7 +296,8 @@ namespace MultiFaceRec
         {
             if (collection == null) InitialiseDb();
             //if (collection.Count(x => true) == 0) throw new DataException("The Database has no records or the connection is broken.");
-            // labels.Clear();
+            trainingImages.Clear();
+            labels.Clear();
             var cnt = collection.Count(x => true);
             cnt++;
             Console.WriteLine($"Collection contains {cnt} records.");
@@ -418,23 +419,26 @@ namespace MultiFaceRec
             trainedFace.Bitmap.Save(ms, ImageFormat.Bmp);
             await ms.FlushAsync();
             ms.Seek(0, SeekOrigin.Begin);
+            var filename = Application.StartupPath + "/TrainedFaces/face" + trainingImages.Count + ".bmp";
             await collection.InsertOneAsync(new FacialCroppedMatch
             {
                 ImageBytes = ms.ToArray(),
-                Name = Application.StartupPath + "/TrainedFaces/face" + trainingImages.Count + ".bmp",
+                Name =filename,
                 Person = text
             });
-            ////Write the number of triained faces in a file text for further load
-            //File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-            //    trainingImages.ToArray().Length.ToString() + "%");
 
-            ////Write the labels of triained faces in a file text for further load
-            //for (int i = 1; i < trainingImages.ToArray().Length + 1; i++)
-            //{
-            //    trainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
-            //    File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-            //        labels.ToArray()[i - 1] + "%");
-            //}
+            trainedFace.Save(filename);
+            //Write the number of triained faces in a file text for further load
+            File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
+                trainingImages.ToArray().Length.ToString() + "%");
+
+            //Write the labels of triained faces in a file text for further load
+            for (int i = 1; i < trainingImages.ToArray().Length + 1; i++)
+            {
+                trainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
+                File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
+                    labels.ToArray()[i - 1] + "%");
+            }
         }
 
         private void FrameGrabber(object sender, EventArgs e)

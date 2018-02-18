@@ -1,4 +1,6 @@
-﻿=======FROM STACKOVERFLOW=======
+﻿Todo: Reinitialise TrainedIMAGES and Labels and FacesCounter and UpdateCrrentPicture etc
+
+=======FROM STACKOVERFLOW=======
 https://blogs.msdn.microsoft.com/shawnfa/2005/05/17/receiving-session-lock-and-unlock-notifications/
 In comments is a further link for logon and logoff... which further links to these code links:
 https://web.archive.org/web/20090822053939/http://gemsres.com:80/story/jun05/105651/source.html
