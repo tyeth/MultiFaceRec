@@ -114,3 +114,5 @@ C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Mongo
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\System.Buffers.xml
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Emgu.CV.DebuggerVisualizers.VS2017.dll
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Microsoft.VisualStudio.DebuggerVisualizers.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\Interop.EventSystemLib.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.csproj.ResolveComReference.cache

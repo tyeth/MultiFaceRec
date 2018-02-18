@@ -97,9 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EigenObjectRecognizer.cs" />
-    <Compile Include="EventSystemRegistrar.cs" />
     <Compile Include="FacialCroppedMatch.cs" />
-    <Compile Include="LogOnLogOffLockUnlockEvents.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -109,8 +107,6 @@
     <Compile Include="MinimizeAll.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SensLogon.cs" />
-    <Compile Include="SensLogonInterop.cs" />
     <Compile Include="SHMessageBox.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
