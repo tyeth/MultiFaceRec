@@ -97,7 +97,7 @@ namespace MultiFaceRec
             catch (Exception e)
             {
                 MessageBox.Show(
-                    "Failed to load settings collection from faces database on local mongodb server.",
+                    $"Failed to load settings collection ({MongoSettingsCollection}) from {MongoDb} database on mongodb server({MongoUrl}).",
                     "Trained faces load", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
             }
@@ -123,7 +123,7 @@ namespace MultiFaceRec
         public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
         private void InitialiseDb()
         {
-            dbClient = new MongoClient(MongoUrl); //defaults to using admin database on localhost.
+            dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
             var dbSettings = new MongoCollectionSettings()
             {
                 AssignIdOnInsert = true,
@@ -776,7 +776,7 @@ namespace MultiFaceRec
             set { _frm = value; }
         }
 
-        public string MongoUrl = "local";
+        public string MongoUrl = "mongodb://localhost:27017";
         public string MongoDb = "faces";
         public string MongoSettingsCollection="settings";
         public string MongoTrustedCollection ="trustedGrey";

@@ -13,42 +13,54 @@ namespace MultiFaceRec
 {
     public partial class frmSettings : Form
     {
-        private bool unsavedChanges = false;
+        private bool _changes = false;
+
+        private bool unsavedChanges
+        {
+            get { return _changes; }
+            set
+            {
+                _changes = value;
+                btnSave.Enabled = value == true;
+            }
+        }
+
         public frmSettings()
         {
             InitializeComponent();
 
         }
 
-        private void Button1_Click(object sender, EventArgs e)
+        private void btnSave_Click(object sender, EventArgs e)
         {
             UpdatePrivacyList();
             UpdateDbSettings();
+            unsavedChanges = false;
             this.Close();
         }
 
         private void UpdateDbSettings()
         {
-             _senderFrm.settingsCollection.DeleteMany(x=>x.Key=="PrivacyList");
+            _senderFrm.settingsCollection.DeleteMany(x => x.Key == "PrivacyList");
             foreach (var VARIABLE in listBox1.Items)
             {
-                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>(  "PrivacyList",  VARIABLE.ToString() ));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("PrivacyList", VARIABLE.ToString()));
             }
 
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbUrl");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "MongoDbUrl",txtMongoUrl.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbUrl", txtMongoUrl.Text));
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbName");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "MongoDbName",txtDatabaseName.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbName", txtDatabaseName.Text));
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Settings");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Settings",txtSettings.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Settings", txtSettings.Text));
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Trusted");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Trusted",txtTrusted.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Trusted", txtTrusted.Text));
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Scanned");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Scanned",txtScanned.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Scanned", txtScanned.Text));
             _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Villains");
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>( "Villains",txtVillains.Text));
+            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Villains", txtVillains.Text));
 
-            if (txtSettings.Text != "settings" || txtMongoUrl.Text != "local" || txtDatabaseName.Text!="faces")
+            if (txtSettings.Text != "settings" || txtMongoUrl.Text != "mongodb://localhost:27017" || txtDatabaseName.Text != "faces")
             {
                 //Write to new server / database / collection
 
@@ -73,19 +85,20 @@ namespace MultiFaceRec
         private void frmSettings_Shown(object sender, EventArgs e)
         {
             var mylist = _senderFrm.privacyList;
-                var list = mylist.ToArray<object>();
+            var list = mylist.ToArray<object>();
             if (listBox1.Items.Count != list.Length)
             {
                 listBox1.Items.Clear();
                 listBox1.Items.AddRange(list);
             }
 
-            txtMongoUrl.Text= _senderFrm.MongoUrl                    ; 
-            txtDatabaseName.Text= _senderFrm.MongoDb                 ;     
-            txtSettings.Text= _senderFrm.MongoSettingsCollection     ; 
-            txtTrusted.Text= _senderFrm.MongoTrustedCollection       ;
-            txtScanned.Text= _senderFrm.MongoScannedCollection       ;
-            txtVillains.Text = _senderFrm.MongoVillainsCollection; 
+            txtMongoUrl.Text = _senderFrm.MongoUrl;
+            txtDatabaseName.Text = _senderFrm.MongoDb;
+            txtSettings.Text = _senderFrm.MongoSettingsCollection;
+            txtTrusted.Text = _senderFrm.MongoTrustedCollection;
+            txtScanned.Text = _senderFrm.MongoScannedCollection;
+            txtVillains.Text = _senderFrm.MongoVillainsCollection;
+            unsavedChanges = false;
         }
 
         private void frmSettings_FormClosing(object sender, FormClosingEventArgs e)
@@ -112,11 +125,11 @@ namespace MultiFaceRec
         {
             if (e.KeyChar == '\r' || e.KeyChar == '\n')
             {
-                button1_Click_1(this,new EventArgs());
+                button1_Click_1(this, new EventArgs());
             }
         }
 
-       
+
         private void UpdatePrivacyList()
         {
 
@@ -129,7 +142,7 @@ namespace MultiFaceRec
 
         private void comboBox1_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter  || e.KeyCode==Keys.Return)
+            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Return)
             {
                 button1_Click_1(this, new EventArgs());
             }
@@ -156,7 +169,8 @@ namespace MultiFaceRec
         }
 
         private void btnResetPrivacyList_Click(object sender, EventArgs e)
-        {   listBox1.Items.Clear();
+        {
+            listBox1.Items.Clear();
             listBox1.Items.AddRange(new List<string>()
             {
                 "outlook",
@@ -189,38 +203,40 @@ namespace MultiFaceRec
             }
         }
 
-        private void label4_Click(object sender, EventArgs e)
+
+        private void txtMongoUrl_TextChanged(object sender, EventArgs e)
         {
+            if (txtMongoUrl.Text != _senderFrm.MongoUrl) unsavedChanges = true;
 
         }
 
-        private void label7_Click(object sender, EventArgs e)
+        private void txtDatabaseName_TextChanged(object sender, EventArgs e)
         {
+            if (txtDatabaseName.Text != _senderFrm.MongoDb) unsavedChanges = true;
 
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void txtTrusted_TextChanged(object sender, EventArgs e)
         {
+            if (txtTrusted.Text != _senderFrm.MongoTrustedCollection) unsavedChanges = true;
 
         }
 
-        private void label8_Click(object sender, EventArgs e)
+        private void txtSettings_TextChanged(object sender, EventArgs e)
         {
+            if (txtSettings.Text != _senderFrm.MongoSettingsCollection) unsavedChanges = true;
 
         }
 
-        private void textBox1_TextChanged_1(object sender, EventArgs e)
+        private void txtScanned_TextChanged(object sender, EventArgs e)
         {
+            if (txtScanned.Text != _senderFrm.MongoScannedCollection) unsavedChanges = true;
 
         }
 
-        private void label9_Click(object sender, EventArgs e)
+        private void txtVillains_TextChanged(object sender, EventArgs e)
         {
-
-        }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
+            if (txtVillains.Text != _senderFrm.MongoVillainsCollection) unsavedChanges = true;
 
         }
     }

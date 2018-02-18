@@ -64,7 +64,7 @@
             this.btnSave.TabIndex = 0;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
-            this.btnSave.Click += new System.EventHandler(this.Button1_Click);
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // btnCancel
             // 
@@ -180,7 +180,6 @@
             this.label4.Size = new System.Drawing.Size(198, 16);
             this.label4.TabIndex = 10;
             this.label4.Text = "Facial Recognition Database Settings:";
-            this.label4.Click += new System.EventHandler(this.label4_Click);
             // 
             // label5
             // 
@@ -197,6 +196,7 @@
             this.txtMongoUrl.Size = new System.Drawing.Size(332, 20);
             this.txtMongoUrl.TabIndex = 12;
             this.txtMongoUrl.Text = "local";
+            this.txtMongoUrl.TextChanged += new System.EventHandler(this.txtMongoUrl_TextChanged);
             // 
             // label6
             // 
@@ -207,7 +207,6 @@
             this.label6.Size = new System.Drawing.Size(198, 16);
             this.label6.TabIndex = 10;
             this.label6.Text = "MongoDb Url / ConnectionString ";
-            this.label6.Click += new System.EventHandler(this.label4_Click);
             // 
             // txtDatabaseName
             // 
@@ -216,7 +215,7 @@
             this.txtDatabaseName.Size = new System.Drawing.Size(156, 20);
             this.txtDatabaseName.TabIndex = 14;
             this.txtDatabaseName.Text = "faces";
-            this.txtDatabaseName.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.txtDatabaseName.TextChanged += new System.EventHandler(this.txtDatabaseName_TextChanged);
             // 
             // label7
             // 
@@ -227,7 +226,6 @@
             this.label7.Size = new System.Drawing.Size(142, 16);
             this.label7.TabIndex = 13;
             this.label7.Text = "MongoDb Database Name";
-            this.label7.Click += new System.EventHandler(this.label7_Click);
             // 
             // txtSettings
             // 
@@ -236,7 +234,7 @@
             this.txtSettings.Size = new System.Drawing.Size(156, 20);
             this.txtSettings.TabIndex = 16;
             this.txtSettings.Text = "settings";
-            this.txtSettings.TextChanged += new System.EventHandler(this.textBox1_TextChanged_1);
+            this.txtSettings.TextChanged += new System.EventHandler(this.txtSettings_TextChanged);
             // 
             // label8
             // 
@@ -247,7 +245,6 @@
             this.label8.Size = new System.Drawing.Size(156, 16);
             this.label8.TabIndex = 15;
             this.label8.Text = "MongoDb Settings Collection";
-            this.label8.Click += new System.EventHandler(this.label8_Click);
             // 
             // txtTrusted
             // 
@@ -256,7 +253,7 @@
             this.txtTrusted.Size = new System.Drawing.Size(156, 20);
             this.txtTrusted.TabIndex = 18;
             this.txtTrusted.Text = "trustedGrey";
-            this.txtTrusted.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
+            this.txtTrusted.TextChanged += new System.EventHandler(this.txtTrusted_TextChanged);
             // 
             // label9
             // 
@@ -267,7 +264,6 @@
             this.label9.Size = new System.Drawing.Size(156, 16);
             this.label9.TabIndex = 17;
             this.label9.Text = "Trusted Faces Collection";
-            this.label9.Click += new System.EventHandler(this.label9_Click);
             // 
             // txtScanned
             // 
@@ -276,6 +272,7 @@
             this.txtScanned.Size = new System.Drawing.Size(156, 20);
             this.txtScanned.TabIndex = 20;
             this.txtScanned.Text = "scanned";
+            this.txtScanned.TextChanged += new System.EventHandler(this.txtScanned_TextChanged);
             // 
             // label10
             // 
@@ -294,6 +291,7 @@
             this.txtVillains.Size = new System.Drawing.Size(156, 20);
             this.txtVillains.TabIndex = 22;
             this.txtVillains.Text = "villains";
+            this.txtVillains.TextChanged += new System.EventHandler(this.txtVillains_TextChanged);
             // 
             // label11
             // 
