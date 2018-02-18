@@ -140,8 +140,7 @@ namespace MultiFaceRec
 
             STATUS = DetectionModeStatusTypes.OFF;
             // notifyIcon.ShowBalloonTip(int.MaxValue, "Title", "Ballon Content", ToolTipIcon.Info);
-            FacesCounter = TrainingImages.Count - 1;
-            UpdateCurrentBrowsedImage();
+
         }
 
         // ReSharper disable once InconsistentNaming
@@ -180,6 +179,7 @@ namespace MultiFaceRec
 
         public void InitialiseDb()
         {
+
             if (settingsCollection != null) settingsCollection = null;
             if (collection != null) collection = null;
             if (db != null) db = null;
@@ -324,30 +324,37 @@ namespace MultiFaceRec
             labels.Clear();
             var cnt = collection.Count(x => true);
             Console.WriteLine($"Collection contains {cnt} records.");
+            if (cnt > 0)
+            {
 
-            // TrainingImages.Clear();
-            var list = collection.Find(x => true).ToList();
-            //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
-            foreach (var doc in list)
-                try
+                // TrainingImages.Clear();
+                var list = collection.Find(x => true).ToList();
+                //*.Find(y => y.Name.EndsWith(".bmp"))*/.ToList();
+                foreach (var doc in list)
                 {
-                    var ms = new MemoryStream();
-                    ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
-                    ms.Flush();
-                    ms.Seek(0, SeekOrigin.Begin);
+                    try
+                    {
+                        var ms = new MemoryStream();
+                        ms.Write(doc.ImageBytes, 0, doc.ImageBytes.Length);
+                        ms.Flush();
+                        ms.Seek(0, SeekOrigin.Begin);
 
-                    var bmp = new Bitmap(ms);
-                    TrainingImages.Add(new Image<Gray, byte>(bmp));
+                        var bmp = new Bitmap(ms);
+                        TrainingImages.Add(new Image<Gray, byte>(bmp));
 
-                    labels.Add(doc.Person);
+                        labels.Add(doc.Person);
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show("Error with " + doc.Id + " " + e.Message + Environment.NewLine +
+                                        e.InnerException?.Message);
+                    }
                 }
-                catch (Exception e)
-                {
-                    MessageBox.Show("Error with " + doc.Id + " " + e.Message + Environment.NewLine +
-                                    e.InnerException?.Message);
-                }
 
+            }
             ContTrain = labels.Count;
+            FacesCounter = TrainingImages.Count - 1;
+            UpdateCurrentBrowsedImage();
             if (TrainingImages.Count == 0)
                 throw new DataException("The Database has no records or the connection is broken.");
 
@@ -781,7 +788,9 @@ namespace MultiFaceRec
         {
             try
             {
-                txtCurrentPicture.Text = $"{FacesCounter + 1}/{TrainingImages.Count} {labels[FacesCounter]}";
+                var tmpName = "";
+                if (labels.Count > 0) tmpName = labels[FacesCounter];
+                txtCurrentPicture.Text = $"{FacesCounter + 1}/{TrainingImages.Count} {tmpName}";
                 pictureBox1.Image = CurrentImage.Bitmap;
                 pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                 pictureBox1.Refresh();

@@ -103,24 +103,24 @@ namespace MultiFaceRec
                 _senderFrm.MongoScannedCollection = txtScanned.Text;
                 _senderFrm.MongoVillainsCollection = txtVillains.Text;
                 _senderFrm.InitialiseDb();
+                //Write to new server / database / collection
+                UpdateDbSettings(ignore = true);
+                _senderFrm.InitialiseDb();
+                _senderFrm.LoadSettings();
 
                 //TODO: reinitialise TrainedImages and Labels and FacesCounter etc.
                 //NEED TO REINITIALISE TRAINEDIMAGES
-                _senderFrm.LoadSettings();
                 try
                 {
                     _senderFrm.LoadTrainedFacesForStartup();
                 }
                 catch (DataException de)
                 {
-                    MessageBox.Show($"No Images on chosen database ({txtDatabaseName}) in chosen collection ({txtSettings}) using '{txtMongoUrl}'");
+                    MessageBox.Show($"No Images on chosen database ({txtDatabaseName.Text}) in chosen collection ({txtSettings.Text}) using '{txtMongoUrl.Text}'");
                 }
-                _senderFrm.FacesCounter = _senderFrm.TrainingImages.Count - 1;
-                _senderFrm.UpdateCurrentBrowsedImage();
+                
+               
 
-
-                //Write to new server / database / collection
-                UpdateDbSettings(ignore=true);
                
             }
         }
