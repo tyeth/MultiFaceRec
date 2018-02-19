@@ -27,7 +27,7 @@ namespace MultiFaceRec
         TRAINING
     }
 
-    public partial class FrmPrincipal : Form
+    public partial class FrmPrincipal : LockNotificationForm
     {
         /// <summary>
         ///     Delegate for the EnumChildWindows method
@@ -799,6 +799,26 @@ namespace MultiFaceRec
             {
             }
         }
+
+        protected override void OnSessionUnlock()
+        {
+            //TODO: Set training mode on
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.WriteLine($" {DateTime.Now.ToString()} UNLOCKED ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Black;
+        }
+        protected override void OnSessionLock()
+        {
+            //TODO: Set training mode on
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.WriteLine($" {DateTime.Now.ToString()} LOCKED ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Black;
+        }
+
 
         private void RegisterUnrecognisedUser()
         {
