@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Windows.Forms;
 
 namespace MultiFaceRec
 {
   
-    public static class SHMessageBox
+    public static class ShFormMessageBox
     {
-
+        [Flags]
         public enum MessageBoxCheckFlags : uint
         {
             MB_OK = 0x00000000,
@@ -90,5 +91,14 @@ namespace MultiFaceRec
             return result;
         }
 
+       
+
     }
+
+    //public interface IFormMessageBox
+    //{
+    //    int MessageBox(Form form, string text, string title,
+    //        ShFormMessageBox.MessageBoxCheckFlags flags = ShFormMessageBox.MessageBoxCheckFlags.MB_OK |
+    //                                                      ShFormMessageBox.MessageBoxCheckFlags.MB_ICONINFORMATION);
+    //}
 }
