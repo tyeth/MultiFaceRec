@@ -845,7 +845,7 @@ namespace MultiFaceRec
             {
             }
 
-            notifyIcon.ShowBalloonTip(time, "Unrecognised Face!", $"The current face on screen is not {username}",
+            notifyIcon.ShowBalloonTip(time, "Unrecognised Face!", $"The current face on screen is not {TxtUsername.Text}",
                 ToolTipIcon.Error);
         }
 
@@ -865,7 +865,7 @@ namespace MultiFaceRec
             }
 
             notifyIcon.ShowBalloonTip(int.MaxValue, "Unwelcome Face?",
-                $"Watchout {username}, There's Prying Eyes About", ToolTipIcon.Warning);
+                $"Watchout {TxtUsername.Text}, There's Prying Eyes About", ToolTipIcon.Warning);
         }
 
         private void turnONDetectionModeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -880,7 +880,6 @@ namespace MultiFaceRec
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            username = TxtUsername.Text;
         }
 
         private void setDetectionModeToTrainingToolStripMenuItem_Click(object sender, EventArgs e)
@@ -933,7 +932,7 @@ namespace MultiFaceRec
                     icon = "if_mycomputer_15677 128x128";
                     break;
             }
-            notifyIcon.Icon = new Icon(/*Path.Combine*/(Application.StartupPath+ "/Resources/"+ icon));
+            notifyIcon.Icon = new Icon(/*Path.Combine*/(Application.StartupPath+ "/../../Resources/"+ icon));
         }
 
         [DllImport("user32")]

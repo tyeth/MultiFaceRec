@@ -117,3 +117,6 @@ C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\Micro
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\Interop.EventSystemLib.dll
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.csproj.ResolveComReference.cache
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.frmSettings.resources
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\LiteDB.dll
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\bin\Debug\LiteDB.xml
+C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\obj\x86\Debug\MultiFaceRec.g.resources

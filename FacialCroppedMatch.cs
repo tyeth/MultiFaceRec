@@ -8,7 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace MultiFaceRec
 {
-   class FacialCroppedMatch
+  public class FacialCroppedMatch
     {
         public string Id { get; set; }
         public string Name { get; set; }
