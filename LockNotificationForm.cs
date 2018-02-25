@@ -5,13 +5,16 @@ using System.Windows.Forms;
 
 namespace MultiFaceRec
 {
+    public class SolidLockNotificationForm : LockNotificationForm
+    {
 
+    }
 
     /// <summary>
     /// Base class for a form that wants to be notified of Windows
     /// session lock / unlock events
     /// </summary>
-    public abstract class LockNotificationForm : Form
+    public class LockNotificationForm : Form
     {
         // from wtsapi32.h
         private const int NotifyForThisSession = 0;

@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
@@ -27,7 +28,7 @@ namespace MultiFaceRec
         TRAINING
     }
 
-    public partial class FrmPrincipal : LockNotificationForm
+    public partial class FrmPrincipal : SolidLockNotificationForm
     {
         /// <summary>
         ///     Delegate for the EnumChildWindows method
@@ -107,7 +108,6 @@ namespace MultiFaceRec
 
         public IMongoCollection<KeyValuePair<string, string>> settingsCollection;
         public readonly List<Image<Gray, byte>> TrainingImages = new List<Image<Gray, byte>>();
-        private string username = "Tyeth";
 
         public FrmPrincipal()
         {
@@ -115,6 +115,8 @@ namespace MultiFaceRec
             //Load haarcascades for face detection
             _face = new HaarCascade("haarcascade_frontalface_default.xml");
             //_eye = new HaarCascade("haarcascade_eye.xml");
+
+            STATUS = DetectionModeStatusTypes.OFF;
             try
             {
                 LoadSettings();
@@ -138,7 +140,7 @@ namespace MultiFaceRec
                     "Trained faces load", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
 
-            STATUS = DetectionModeStatusTypes.OFF;
+            UpdateTrayIcon();
             // notifyIcon.ShowBalloonTip(int.MaxValue, "Title", "Ballon Content", ToolTipIcon.Info);
 
         }
@@ -908,7 +910,30 @@ namespace MultiFaceRec
         {
             var f = myFrmSettings;
             f._senderFrm = this;
+            UpdateTrayIcon();
             f.Show();
+        }
+
+        private void UpdateTrayIcon()
+        {
+            string icon = "off.ico";
+            switch (STATUS)
+            {
+                case DetectionModeStatusTypes.ON:
+                    icon = "on.ico";
+                    break;
+                case DetectionModeStatusTypes.TRAINING:
+                    icon = "training.ico";
+                    break;
+                case DetectionModeStatusTypes.OFF:
+                    icon = "off.ico";
+                    break;
+
+                default:
+                    icon = "if_mycomputer_15677 128x128";
+                    break;
+            }
+            notifyIcon.Icon = new Icon(/*Path.Combine*/(Application.StartupPath+ "/Resources/"+ icon));
         }
 
         [DllImport("user32")]

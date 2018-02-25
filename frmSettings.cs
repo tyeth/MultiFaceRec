@@ -31,7 +31,7 @@ namespace MultiFaceRec
             InitializeComponent();
             for (int i = 0; i < checkedListBox1.Items.Count; i++)
             {
-                checkedListBox1.SetItemChecked(i,true);
+                checkedListBox1.SetItemChecked(i, true);
             }
         }
 
@@ -43,56 +43,60 @@ namespace MultiFaceRec
             this.Close();
         }
 
-        private void UpdateDbSettings(bool ignore=false)
+        private void UpdateDbSettings(bool ignore = false)
         {
             try
             {
 
-            _senderFrm.settingsCollection.DeleteMany(x => x.Key == "PrivacyList");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbUrl");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "MongoDbName");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Settings");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Trusted");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Scanned");
-            _senderFrm.settingsCollection.DeleteOne(x => x.Key == "Villains");
-            }catch(Exception e) { }
-            foreach (var VARIABLE in listBox1.Items)
-            {
-                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("PrivacyList", VARIABLE.ToString()));
-            }
+                _senderFrm.settingsCollection.DeleteMany(x => x.Key == "PrivacyList");
+                _senderFrm.settingsCollection.DeleteMany(x =>
+                    new[]
+                    {
+                        "MongoDbUrl", "MongoDbName", "Settings", "Trusted", "Scanned", "Villains"
+                    }.Contains(x.Key)
+                );
 
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbUrl", txtMongoUrl.Text));
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbName", txtDatabaseName.Text));
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Settings", txtSettings.Text));
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Trusted", txtTrusted.Text));
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Scanned", txtScanned.Text));
-            _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Villains", txtVillains.Text));
-
-            var settingsListBoxItems = GetListBoxSettings(checkedListBox1.Items);
-
-            for (int i = 0; i < checkedListBox1.Items.Count; i++)
-            {
-                if (settingsListBoxItems.Count(x => x.Key == checkedListBox1.Items[i].ToString()) > 0)
+                foreach (var VARIABLE in listBox1.Items)
                 {
-                    _senderFrm.settingsCollection.DeleteOne(x => x.Key == checkedListBox1.Items[i].ToString());
+                    _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("PrivacyList", VARIABLE.ToString()));
                 }
-                _senderFrm.settingsCollection.InsertOne(
-                    new KeyValuePair<string, string>(
-                        checkedListBox1.Items[i].ToString(),
-                        checkedListBox1.CheckedIndices.Contains(i)
-                            ?  "1"  :  "0"
-                        )
-                    );
+
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbUrl", txtMongoUrl.Text));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("MongoDbName", txtDatabaseName.Text));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Settings", txtSettings.Text));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Trusted", txtTrusted.Text));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Scanned", txtScanned.Text));
+                _senderFrm.settingsCollection.InsertOne(new KeyValuePair<string, string>("Villains", txtVillains.Text));
+
+                var settingsListBoxItems = GetListBoxSettings(checkedListBox1.Items);
+
+                for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                {
+                    if (settingsListBoxItems.Count(x => x.Key == checkedListBox1.Items[i].ToString()) > 0)
+                    {
+                        _senderFrm.settingsCollection.DeleteOne(x => x.Key == checkedListBox1.Items[i].ToString());
+                    }
+                    _senderFrm.settingsCollection.InsertOne(
+                        new KeyValuePair<string, string>(
+                            checkedListBox1.Items[i].ToString(),
+                            checkedListBox1.CheckedIndices.Contains(i)
+                                ? "1" : "0"
+                            )
+                        );
+                }
+            }
+            catch (Exception e)
+            {
+                throw;
             }
 
-
-            if (ignore==false ||
+            if (ignore == false ||
                 txtSettings.Text != _senderFrm.MongoSettingsCollection ||
                 txtMongoUrl.Text != _senderFrm.MongoUrl ||
                 txtDatabaseName.Text != _senderFrm.MongoDb ||
-                txtScanned.Text!= _senderFrm.MongoScannedCollection ||
-                txtVillains.Text!= _senderFrm.MongoVillainsCollection ||
-                txtTrusted.Text!= _senderFrm.MongoTrustedCollection
+                txtScanned.Text != _senderFrm.MongoScannedCollection ||
+                txtVillains.Text != _senderFrm.MongoVillainsCollection ||
+                txtTrusted.Text != _senderFrm.MongoTrustedCollection
                 )
             {
                 // Refresh FrmPrincipal Data Connection Settings and reinitialise.
@@ -118,10 +122,10 @@ namespace MultiFaceRec
                 {
                     MessageBox.Show($"No Images on chosen database ({txtDatabaseName.Text}) in chosen collection ({txtSettings.Text}) using '{txtMongoUrl.Text}'");
                 }
-                
-               
 
-               
+
+
+
             }
         }
 
@@ -149,17 +153,28 @@ namespace MultiFaceRec
             txtScanned.Text = _senderFrm.MongoScannedCollection;
             txtVillains.Text = _senderFrm.MongoVillainsCollection;
 
-            var settingsListBoxItems = GetListBoxSettings(checkedListBox1.Items);
-            var selectedIndices = checkedListBox1.CheckedIndices;
-
-            for (int i = 0; i < checkedListBox1.Items.Count; i++)
+            try
             {
-                var dbSettingForItem = settingsListBoxItems.FirstOrDefault(x => x.Key == checkedListBox1.Items[i].ToString());
-                if (dbSettingForItem.Value!=new KeyValuePair<string,string>().Value)
-                { //Non-default value, something worth updating
-                      checkedListBox1.SetItemChecked( i,(bool)( dbSettingForItem.Value == "1"));
+                var settingsListBoxItems = GetListBoxSettings(checkedListBox1.Items);
+                var selectedIndices = checkedListBox1.CheckedIndices;
+
+                for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                {
+                    var dbSettingForItem =
+                        settingsListBoxItems.FirstOrDefault(x => x.Key == checkedListBox1.Items[i].ToString());
+                    if (dbSettingForItem.Value != new KeyValuePair<string, string>().Value)
+                    {
+                        //Non-default value, something worth updating
+                        checkedListBox1.SetItemChecked(i, (bool)(dbSettingForItem.Value == "1"));
+                    }
                 }
-                
+            }
+            catch (Exception exception)
+            {
+                //todo: this should be a normal msg box to be displayed always if settings couldn't be loaded
+                this.MessageBoxCheck(
+                    "No settings could be loaded for the checkbox options. Check your settings are being stored correctly..." + Environment.NewLine + "Error Message:" + Environment.NewLine + exception.Message,
+                    "Couldn't load settings");
             }
             checkedListBox1.Refresh();
 
@@ -181,25 +196,25 @@ namespace MultiFaceRec
         {
             var ret = new List<KeyValuePair<string, string>>();
             var filterBuilder = Builders<KeyValuePair<string, string>>.Filter;
-            var filterarr = new List<FilterDefinition<KeyValuePair<string,string>>>( );
+            var filterarr = new List<FilterDefinition<KeyValuePair<string, string>>>();
             foreach (var item in keysEnumerable)
             {
                 filterarr.Add(filterBuilder.Eq<string>("k", item.ToString()));
             }
 
             var filter = filterBuilder.Or(filterarr);
-       
+
 
             var projection = Builders<KeyValuePair<string, string>>.Projection
                     .Exclude("_id")
                     .Include("k")
                     .Include("v")
-              
+
                 ;
 
             var list = _senderFrm.settingsCollection.Find(filter).Project(projection).ToList();//.ToList<KeyValuePair<string,string>>();///*.Project(projection)*/.FirstOrDefault();
 
-           ret= list.Select(x=> BsonSerializer.Deserialize<KeyValuePair<string, string>>(x)).ToList();
+            ret = list.Select(x => BsonSerializer.Deserialize<KeyValuePair<string, string>>(x)).ToList();
             return ret;
         }
 
