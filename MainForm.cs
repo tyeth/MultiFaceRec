@@ -63,6 +63,8 @@ namespace MultiFaceRec
         private frmSettings _frm;
         private Capture _grabber;
         private IMongoCollection<FacialCroppedMatch> collection;
+        private IMongoCollection<FacialCroppedMatch> detectedCollection;
+        private IMongoCollection<FacialCroppedMatch> villianCollection;
         private int ContTrain, NumLabels, t;
         private IMongoDatabase db;
         private MongoClient dbClient;
@@ -113,7 +115,7 @@ namespace MultiFaceRec
         {
             InitializeComponent();
             //Load haarcascades for face detection
-            _face = new HaarCascade("haarcascade_frontalface_default.xml");
+            _face = new HaarCascade(Path.GetDirectoryName(Application.ExecutablePath) + "\\haarcascade_frontalface_default.xml");
             //_eye = new HaarCascade("haarcascade_eye.xml");
 
             STATUS = DetectionModeStatusTypes.OFF;
@@ -187,6 +189,12 @@ namespace MultiFaceRec
             if (db != null) db = null;
             if (dbClient != null) dbClient = null;
 
+            //if (STATUS == DetectionModeStatusTypes.TRAINING || STATUS == DetectionModeStatusTypes.ON)
+            {
+                if (detectedCollection != null) detectedCollection = null;
+                if (villianCollection!= null) villianCollection = null;
+            }
+
             dbClient = new MongoClient(new MongoUrl(MongoUrl)); //defaults to using admin database on localhost.
             var dbSettingsNoId = new MongoCollectionSettings
             {
@@ -207,8 +215,13 @@ namespace MultiFaceRec
             db = dbClient.GetDatabase(MongoDb);
             settingsCollection =
                 db.GetCollection<KeyValuePair<string, string>>(MongoSettingsCollection, dbSettingsNoId);
-            collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettingsWithId
-            );
+            collection = db.GetCollection<FacialCroppedMatch>(MongoTrustedCollection, dbSettingsWithId);
+
+            //if (STATUS == DetectionModeStatusTypes.TRAINING || STATUS == DetectionModeStatusTypes.ON)
+            {
+                detectedCollection = db.GetCollection<FacialCroppedMatch>(MongoScannedCollection, dbSettingsWithId);
+                villianCollection = db.GetCollection<FacialCroppedMatch>(MongoVillainsCollection, dbSettingsWithId);
+            }
         }
 
         public void LoadSettings()
@@ -246,7 +259,7 @@ namespace MultiFaceRec
             UpdateAndFlagBoolIfChanged(ref changed, ref MongoUrl, cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbUrl").Value);
             UpdateAndFlagBoolIfChanged(ref changed, ref MongoDb, cleanSettingsCollection.FirstOrDefault(x => x.Key == "MongoDbName").Value);
             UpdateAndFlagBoolIfChanged(ref changed, ref MongoSettingsCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Settings").Value);
-            UpdateAndFlagBoolIfChanged(ref changed, ref MongoTrustedCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value);
+           var a =  UpdateAndFlagBoolIfChanged(ref changed, ref MongoTrustedCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Trusted").Value);
             UpdateAndFlagBoolIfChanged(ref changed, ref MongoScannedCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Scanned").Value);
             UpdateAndFlagBoolIfChanged(ref changed, ref MongoVillainsCollection, cleanSettingsCollection.FirstOrDefault(x => x.Key == "Villains").Value);
             if (changed)
@@ -257,10 +270,9 @@ namespace MultiFaceRec
         }
 
         /// <summary>
-        /// A function for compound change tracking.
-        /// If bool=true or str!=value and value not null (an empty string will cause a change)
-        /// </summary>
-        /// <returns>bool to indicate change of specific value</returns>
+        /// A function for compound change tracking through ref bb.
+        /// If bool=true or str!=value and value not null (an empty string will cause a change).
+        /// Returns bool to indicate change relative to original string value irrespective of bb</summary>
         /// <param name="bb">REF: initial bool to change to true if str changes or left as true if bool is initially true.</param>
         /// <param name="str">a reference to a string variable to change to value if not null</param>
         /// <param name="value">the value to test for null and against str</param>
@@ -428,7 +440,7 @@ namespace MultiFaceRec
 
                 //Show face added in gray scale
                 imageBox1.Image = TrainedFace;
-                PersistNewFace(TrainedFace, TxtUsername.Text);
+                PersistNewFace(collection, TrainedFace, TxtUsername.Text);
 
                 this.MessageBoxCheck(TxtUsername.Text + "´s face detected and added :)", "Training OK");
 
@@ -444,32 +456,35 @@ namespace MultiFaceRec
             UpdateCurrentBrowsedImage();
         }
 
-        private async void PersistNewFace(Image<Gray, byte> trainedFace, string text)
+        private async void PersistNewFace(IMongoCollection<FacialCroppedMatch> whichCollection, Image<Gray, byte> trainedFace, string nameText,  bool saveToFile = true)
         {
-            if (collection == null) InitialiseDb();
+            if (whichCollection == null) InitialiseDb();
             var ms = new MemoryStream();
             trainedFace.Bitmap.Save(ms, ImageFormat.Bmp);
             await ms.FlushAsync();
             ms.Seek(0, SeekOrigin.Begin);
-            var filename = Application.StartupPath + "/TrainedFaces/face" + TrainingImages.Count + ".bmp";
-            await collection.InsertOneAsync(new FacialCroppedMatch
+            var filename = Path.GetDirectoryName(Application.ExecutablePath) + "/TrainedFaces/face" + TrainingImages.Count + ".bmp";
+            await whichCollection.InsertOneAsync(new FacialCroppedMatch
             {
                 ImageBytes = ms.ToArray(),
                 Name = filename,
-                Person = text
+                Person = nameText
             });
 
-            trainedFace.Save(filename);
-            //Write the number of triained faces in a file text for further load
-            File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-                TrainingImages.ToArray().Length.ToString() + "%");
-
-            //Write the labels of triained faces in a file text for further load
-            for (int i = 1; i < TrainingImages.ToArray().Length + 1; i++)
+            if (saveToFile)
             {
-                TrainingImages.ToArray()[i - 1].Save(Application.StartupPath + "/TrainedFaces/face" + i + ".bmp");
-                File.AppendAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
-                    labels.ToArray()[i - 1] + "%");
+                trainedFace.Save(filename);
+                //Write the number of triained faces in a file text for further load
+                File.WriteAllText(Application.StartupPath + "/TrainedFaces/TrainedLabels.txt",
+                    TrainingImages.ToArray().Length.ToString() + "%");
+
+                //Write the labels of triained faces in a file text for further load
+                for (int i = 1; i < TrainingImages.ToArray().Length + 1; i++)
+                {
+                    TrainingImages.ToArray()[i - 1].Save(Path.GetDirectoryName(Application.ExecutablePath) + "/TrainedFaces/face" + i + ".bmp");
+                    File.AppendAllText(Path.GetDirectoryName(Application.ExecutablePath) + "/TrainedFaces/TrainedLabels.txt",
+                        labels.ToArray()[i - 1] + "%");
+                }
             }
         }
 
@@ -932,7 +947,7 @@ namespace MultiFaceRec
                     icon = "if_mycomputer_15677 128x128";
                     break;
             }
-            notifyIcon.Icon = new Icon(/*Path.Combine*/(Application.StartupPath+ "/../../Resources/"+ icon));
+            notifyIcon.Icon = new Icon(/*Path.Combine*/(Path.GetDirectoryName(Application.ExecutablePath) + "/../../Resources/" + icon));
         }
 
         [DllImport("user32")]

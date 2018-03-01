@@ -16,10 +16,6 @@ C:\Users\Tyeth\source\repos\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\dll\
 C:\Users\Tyeth\source\repos\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\Emgu.CV.World.dll
 C:\Users\Tyeth\source\repos\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\Emgu.CV.World.pdb
 C:\Users\Tyeth\source\repos\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\Emgu.CV.World.xml
-C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\dll\x86\OpenCvSharpExtern.dll
-C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\dll\x86\opencv_ffmpeg331.dll
-C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\dll\x64\OpenCvSharpExtern.dll
-C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\dll\x64\opencv_ffmpeg331_64.dll
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\MongoDbTest.deps.json
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\MongoDbTest.runtimeconfig.json
 C:\Users\Tyeth\Documents\REPOS\C#\facialrecognition\FaceRecProOV\MongoDbTest\MongoDbTest\bin\Debug\netcoreapp2.0\MongoDbTest.runtimeconfig.dev.json

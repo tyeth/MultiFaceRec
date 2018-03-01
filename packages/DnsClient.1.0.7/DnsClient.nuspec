@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>DnsClient</id>
+    <version>1.0.7</version>
+    <authors>MichaCo</authors>
+    <owners>MichaCo</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/MichaCo/DnsClient.NET/blob/master/LICENSE</licenseUrl>
+    <projectUrl>http://dnsclient.michaco.net</projectUrl>
+    <description>DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups</description>
+    <releaseNotes>## New Features and Fixes:
+
+* added more extension methods on `IDnsQuery` for 
+   * GetHostName
+   * GetHostEntry
+
+* added extension on `IPAddress` to get the arpa name of it
+
+* fixed spelling of MinimumCacheTimeout... in `ILookupClient` #5 
+
+Overall, I added a ton of documentation to the library and published it on [dnsclient.michaco.net](http://dnsclient.michaco.net)
+</releaseNotes>
+    <copyright>Copyright (c) 2017 MichaConrad</copyright>
+    <tags>DNS Name Server CSharp .NET .NET Core</tags>
+    <repository type="git" url="https://github.com/MichaCo/DnsClient.NET" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="System.Buffers" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard1.3">
+        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
+        <dependency id="System.Buffers" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Collections" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Collections.Concurrent" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Globalization.Extensions" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.IO.FileSystem" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Linq" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Net.NameResolution" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Net.NetworkInformation" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Net.Sockets" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.Extensions" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Encoding" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Threading" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.InteropServices" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Win32.Primitives" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <repository type="git" url="https://github.com/MichaCo/DnsClient.NET" xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd" />
+    <iconUrl>http://dnsclient.michaco.net/favicon-196x196.png</iconUrl>
+  </metadata>
+</package>

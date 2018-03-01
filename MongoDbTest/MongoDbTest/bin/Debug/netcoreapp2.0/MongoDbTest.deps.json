@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.0",
-    "signature": "c629663babb7f43e33ea2c61259c0d344de1a54d"
+    "signature": "199008263de1aefc91fde76c8226b243243f8465"
   },
   "compilationOptions": {},
   "targets": {
@@ -11,7 +11,6 @@
           "LiteDB": "4.1.1",
           "Microsoft.Windows.Compatibility": "2.0.0-preview1-25914-04",
           "MongoDB.Driver": "2.5.0",
-          "OpenCvSharp3-AnyCPU": "3.3.1.20171117",
           "Emgu.CV.World": "3.3.0.2824"
         },
         "runtime": {
@@ -182,12 +181,6 @@
         },
         "runtime": {
           "lib/netstandard1.5/MongoDB.Driver.Core.dll": {}
-        }
-      },
-      "OpenCvSharp3-AnyCPU/3.3.1.20171117": {
-        "runtime": {
-          "lib/netcoreapp1.0/OpenCvSharp.Blob.dll": {},
-          "lib/netcoreapp1.0/OpenCvSharp.dll": {}
         }
       },
       "runtime.native.System/4.3.0": {
@@ -1514,13 +1507,6 @@
       "sha512": "sha512-/JYwBTEoWZDHiSePk0AF775c0YkSGSsHTA2+hWt9/UOCkYV/QOFujAWDdpFzBMCDpmQewbLRR1knYj76YOxffA==",
       "path": "mongodb.driver.core/2.5.0",
       "hashPath": "mongodb.driver.core.2.5.0.nupkg.sha512"
-    },
-    "OpenCvSharp3-AnyCPU/3.3.1.20171117": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-sELLcrhF72vTGjdcoHHys3gELQsOT+b15vI9AJJrQ4r8/RyTg7mbyPcnDTG/3Jlh6pNEHt34uSGeDkm+0L+7Zw==",
-      "path": "opencvsharp3-anycpu/3.3.1.20171117",
-      "hashPath": "opencvsharp3-anycpu.3.3.1.20171117.nupkg.sha512"
     },
     "runtime.native.System/4.3.0": {
       "type": "package",
